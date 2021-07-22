@@ -1,5 +1,9 @@
-var SimpleStorage = artifacts.require("./SimpleStorage.sol");
+var ubiquito = artifacts.require('./Ubiquito.sol');
+var gameFactoryContract = artifacts.require("./ChessFactory.sol");
 
-module.exports = function(deployer) {
-  deployer.deploy(SimpleStorage);
+
+module.exports = async function(deployer) {
+  const accounts = await web3.eth.getAccounts();
+  await deployer.deploy(ubiquito,100000);
+  await deployer.deploy(gameFactoryContract,ubiquito.address,35,12,60);
 };
