@@ -20,7 +20,8 @@ contract ChessFactory is Ownable {
     uint256 private WINNER_SHARE;
     uint256 private LOSER_SHARE;
     uint256 private WINNER_COIN_SHARE;
-
+    bool private isActive = false;
+    
     constructor(
         IERC20Burnable _ubiquito,
         uint256 _winnerShare,
@@ -45,6 +46,7 @@ contract ChessFactory is Ownable {
     )
         public onlyOwner 
     {
+        require(isActive==false,"ChessFactory: A game is still in progress!");
         totalGames++;
         ChessGame game = new ChessGame(
             totalGames,
@@ -58,6 +60,7 @@ contract ChessFactory is Ownable {
         );
         UBIQUITO.transfer(address(game), INITIAL_GAME_SUPPLY); // Supply ChessFactory with sufficient Ubiquito!!!
         games[totalGames] = game;
+        isActive = true;
     }
 
     ///@notice Address of latest game that was created
@@ -134,5 +137,6 @@ contract ChessFactory is Ownable {
             "ChessFactory: Game has not ended yet!"
         );
         game.sendRewards();
+        isActive = false;
     }
 }

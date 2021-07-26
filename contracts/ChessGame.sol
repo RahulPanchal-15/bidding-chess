@@ -54,7 +54,7 @@ contract ChessGame {
     address private COIN_OWNER;
     bool private REWARD_SET;
     IERC20Burnable private UBIQUITO;
-    string public FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKNR w KQkq - 0 1";
+    string public FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     uint16 public MAX_CHANCES;
     uint256 public GAME_ID;
     uint256 public MIN_COIN_BID;
@@ -63,7 +63,7 @@ contract ChessGame {
     Result public GAME_RESULT = Result.NA;
     Sides public WINNER = Sides.None;
     Sides public LOSER = Sides.None;
-    Sides private turn = Sides.White;
+    Sides public turn = Sides.White;
     mapping(address => Player) private player;
     mapping(Sides => SideStruct) private side;
 
@@ -247,6 +247,7 @@ contract ChessGame {
         return FEN;
     }
 
+
     ///@notice Perform a move by bidding a small amount of ether
     ///@dev Validates the move and adds data to the variables
     ///@param _result Result of the game
@@ -313,6 +314,7 @@ contract ChessGame {
         addData(msg.sender, _side, 0, _coins);
         emit Moved(msg.sender, _fen, _coins);
         if (_result == Result.NA) {
+
             turn = switchTeam(_side);
         } else {
             GAME_RESULT = _result;

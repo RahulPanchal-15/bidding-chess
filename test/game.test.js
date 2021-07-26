@@ -30,17 +30,17 @@ contract("GameContract:", (accounts) => {
     let game = await Game.at(gameAddress);
 
     await truffleAssert.reverts(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("e4"), { from: W1, value: 9 }),
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("e4"), { from: W1, value: 9 }),
       "ChessGame: Invalid Bid!"
     );
 
     await truffleAssert.reverts(
-      game.performMoveUsingEther(0, 2, web3.utils.toHex("e4"), { from: B1, value: 10 }),
+      game.performMoveUsingEther(0,   2, web3.utils.toHex("e4"), { from: B1, value: 10 }),
       "ChessGame: Not your turn!"
     );
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("e4"), { from: W1, value: 10 }), // W1 - 10
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("e4"), { from: W1, value: 10 }), // W1 - 10
     );
 
   });
@@ -51,21 +51,21 @@ contract("GameContract:", (accounts) => {
     let game = await Game.at(gameAddress);
 
     await truffleAssert.reverts(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("e5"), { from: B1, value: 10 }),
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("e5"), { from: B1, value: 10 }),
       "ChessGame: Not your turn!"
     );
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 2, web3.utils.toHex("e5"), { from: B1, value: 10 }) // B1 - 10
+      game.performMoveUsingEther(0,   2, web3.utils.toHex("e5"), { from: B1, value: 10 }) // B1 - 10
     );
 
     await truffleAssert.reverts(
-      game.performMoveUsingEther(0, 2, web3.utils.toHex("e5"), { from: B1, value: 10 }),
+      game.performMoveUsingEther(0,   2, web3.utils.toHex("e5"), { from: B1, value: 10 }),
       "ChessGame: Not your turn!"
     )
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("Qh5"), { from: W1, value: 100 }) // W1 - 100
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("Qh5"), { from: W1, value: 100 }) // W1 - 100
     );
 
   });
@@ -77,16 +77,16 @@ contract("GameContract:", (accounts) => {
     let game = await Game.at(gameAddress);
 
     await truffleAssert.reverts(
-      game.performMoveUsingEther(0, 2, web3.utils.toHex("Nf6"), { from: W1, value: 100 }),
+      game.performMoveUsingEther(0,   2, web3.utils.toHex("Nf6"), { from: W1, value: 100 }),
       "ChessGame: You cannot change sides!"
     );
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 2, web3.utils.toHex("Nf6"), { from: B2, value: 50 }) // B2 - 50
+      game.performMoveUsingEther(0,   2, web3.utils.toHex("Nf6"), { from: B2, value: 50 }) // B2 - 50
     );
 
     await truffleAssert.reverts(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("Qxe5+"), { from: B2, value: 10 }),
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("Qxe5+"), { from: B2, value: 10 }),
       "ChessGame: You cannot change sides!"
     );
 
@@ -99,23 +99,23 @@ contract("GameContract:", (accounts) => {
     let game = await Game.at(gameAddress);
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("Qxe5+"), { from: W1, value: 100 }) // W1 - 100
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("Qxe5+"), { from: W1, value: 100 }) // W1 - 100
     );
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 2, web3.utils.toHex("Qe7"), { from: B3, value: 10 }) // B3 - 10
+      game.performMoveUsingEther(0,   2, web3.utils.toHex("Qe7"), { from: B3, value: 10 }) // B3 - 10
     );
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("Qxc7"), { from: W1, value: 50 }) // W1 - 50
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("Qxc7"), { from: W1, value: 50 }) // W1 - 50
     );
 
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 2, web3.utils.toHex("Nxe4"), { from: B1, value: 50 }) // B1 - 50
+      game.performMoveUsingEther(0,   2, web3.utils.toHex("Nxe4"), { from: B1, value: 50 }) // B1 - 50
     );
 
     await truffleAssert.reverts(
-      game.performMoveUsingEther(0, 1, web3.utils.toHex("Qxc8+"), { from: W1, value: 50 }),
+      game.performMoveUsingEther(0,   1, web3.utils.toHex("Qxc8+"), { from: W1, value: 50 }),
       "ChessGame: You have played maximum chances!"
     );
 
@@ -146,7 +146,7 @@ contract("GameContract:", (accounts) => {
     //   let game = await Game.at(gameAddress);
   
     //   await truffleAssert.passes(
-    //     game.performMoveUsingEther(0,1 , web3.utils.toHex("Qxc8+"), { from: W2, value: 50}) // W2 - 30
+    //     game.performMoveUsingEther(0,  1 , web3.utils.toHex("Qxc8+"), { from: W2, value: 50}) // W2 - 30
     //   );
   
     //   let bidsW1 = await game.bids(W1);

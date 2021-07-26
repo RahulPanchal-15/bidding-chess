@@ -7,7 +7,6 @@ contract("ChessFactory", (accounts) => {
 
   const [Owner, W1, B1, W2, B2, W3, B3, W4, B4, W5] = accounts;
 
-
   it(" send 10000 Ubiquito to ChessFactory", async() => {
     let coin = await Coin.deployed();
     await truffleAssert.passes(
@@ -59,7 +58,7 @@ contract("ChessFactory", (accounts) => {
     let game = await Game.at(gameAddress);
     let coin = await Coin.deployed();
     await truffleAssert.passes(
-      game.performMoveUsingCoin(0,1,50,web3.utils.toHex("e4"),{from: W1}) // W1 - 100ubi
+      game.performMoveUsingCoin( 0, 1,50,web3.utils.toHex("e4"),{from: W1}) // W1 - 100ubi
       );
       let w1_prevBalance = await web3.eth.getBalance(W1);
       console.log("W1 after move balance(eth) : ",w1_prevBalance.toString());
@@ -82,7 +81,7 @@ contract("ChessFactory", (accounts) => {
       let gameAddress = await factory.getLatestGame(); 
       let game = await Game.at(gameAddress);
       await truffleAssert.passes(
-        game.performMoveUsingCoin(0,2,50,web3.utils.toHex("e5"),{from: B1})
+        game.performMoveUsingCoin( 0, 2,50,web3.utils.toHex("e5"),{from: B1})
       );
       let b1_prevBalance = await web3.eth.getBalance(B1);
       console.log("B1 after move balance(eth) : ",b1_prevBalance.toString());
@@ -96,7 +95,7 @@ contract("ChessFactory", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(1,1,web3.utils.toHex("c4"),{from: W2, value: 1000})
+      game.performMoveUsingEther(1,  1,web3.utils.toHex("c4"),{from: W2, value: 1000})
     );
     let w2_prevBalance = await web3.eth.getBalance(W2);
     console.log("W1 after move balance(eth) : ",w2_prevBalance.toString());

@@ -63,7 +63,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0,1,web3.utils.toHex("e4"),{from: W1, value: 10})
+      game.performMoveUsingEther(0, 1,web3.utils.toHex("e4"),{from: W1, value: 10})
     )
   }); 
 
@@ -72,7 +72,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0,2,web3.utils.toHex("e5"),{from: B1, value: 10})
+      game.performMoveUsingEther(0, 2,web3.utils.toHex("e5"),{from: B1, value: 10})
     )
   });
 
@@ -81,7 +81,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0,1,web3.utils.toHex("c4"),{from: W2, value: 50})
+      game.performMoveUsingEther(0, 1,web3.utils.toHex("c4"),{from: W2, value: 50})
     )
   }); 
 
@@ -90,7 +90,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0,2,web3.utils.toHex("c5"),{from: B2, value: 50})
+      game.performMoveUsingEther(0, 2,web3.utils.toHex("c5"),{from: B2, value: 50})
     )
   });
 
@@ -99,7 +99,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0,1,web3.utils.toHex("Qh5"),{from: W3, value: 100})
+      game.performMoveUsingEther(0, 1,web3.utils.toHex("Qh5"),{from: W3, value: 100})
     )
   }); 
 
@@ -108,7 +108,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0,2,web3.utils.toHex("Nf6"),{from: B3, value: 10})
+      game.performMoveUsingEther(0, 2,web3.utils.toHex("Nf6"),{from: B3, value: 10})
     )
   });
 
@@ -117,7 +117,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     truffleAssert.passes(
-      await game.performMoveUsingEther(1,1,web3.utils.toHex("Qxf7#"),{from: W4, value:100})
+      await game.performMoveUsingEther(1, 1,web3.utils.toHex("Qxf7#"),{from: W4, value:100})
     );
   });
   

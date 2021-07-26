@@ -1,0 +1,17 @@
+.game {
+  background-color: cornflowerblue;
+  width: 65vh;
+  display: inline-block;
+  flex-direction: row;
+  border-radius: 3vh;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  -ms-flex-align: center;
+  margin-top: 20px;
+}
+
+#undo-button {
+  display: inline-block;
+  margin-bottom: 5px;
+}

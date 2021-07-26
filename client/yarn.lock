@@ -2532,6 +2532,11 @@
   "resolved" "https://registry.npmjs.org/chardet/-/chardet-0.7.0.tgz"
   "version" "0.7.0"
 
+"chess.js@^0.12.0":
+  "integrity" "sha512-eF1xf4j88r/AwIRxqV1FXZbVgMt4yUx05xrL+ZMqUrY+snFrUxGVHs0VgEd3AvngujDE9th7XZqqCwEKEQ7mWQ=="
+  "resolved" "https://registry.npmjs.org/chess.js/-/chess.js-0.12.0.tgz"
+  "version" "0.12.0"
+
 "chokidar@^2.0.0", "chokidar@^2.0.2", "chokidar@^2.0.4":
   "integrity" "sha512-ZmZUazfOzf0Nve7duiCKD23PFSCs4JPoYyccjUFF3aQkQadqBhfzhjkwBH2mNOG9cTBwhamM37EIsIkZw3nRgg=="
   "resolved" "https://registry.npmjs.org/chokidar/-/chokidar-2.1.8.tgz"
@@ -2656,6 +2661,11 @@
   "version" "1.0.2"
   dependencies:
     "mimic-response" "^1.0.0"
+
+"cm-chessboard@^3.15.0":
+  "integrity" "sha512-wBbNXopLDnSPbiOoF+mPfyY41Kpqy18fAtHPrfcqfamCU7dEwcc5b03m+WUaewOOG5lf/dqx0m/aXlwVJVKf2w=="
+  "resolved" "https://registry.npmjs.org/cm-chessboard/-/cm-chessboard-3.15.0.tgz"
+  "version" "3.15.0"
 
 "co@^4.6.0":
   "integrity" "sha1-bqa989hTrlTMuOR7+gvz+QMfsYQ="
