@@ -346,14 +346,18 @@ contract ChessGame {
         uint256 recipients = getNumberOfPlayers(_side);
         uint256 sideReward = side[_side].reward;
         uint256 sideCoinReward = side[_side].coin_reward;
+        uint8 multiplier = 0;
+        if (_side==WINNER || _side==Sides.None){
+            multiplier=1;
+        }
         for (uint256 i = 0; i < recipients; i++) {
             address payable recipient = payable(side[_side].players[i]);
-            uint256 playerBid = player[msg.sender].bid;
-            uint256 amount = sideReward.add(playerBid);
+            uint256 playerBid = player[recipient].bid * multiplier;
+            uint256 amount = sideReward + playerBid;
             Address.sendValue(recipient, amount);
-            uint256 playerCoins = player[msg.sender].cbid;
+            uint256 playerCoins = (player[recipient].cbid * multiplier) / 2;
             uint256 coinReward = sideReward.div(UBIQUITO_PRICE) + sideCoinReward;
-            uint256 totalCoins = playerCoins.add(coinReward);
+            uint256 totalCoins = playerCoins + coinReward;
             UBIQUITO.transfer(recipient, totalCoins);
         }
     }

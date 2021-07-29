@@ -1,4 +1,3 @@
-const Coin = artifacts.require('Ubiquito');
 const Game = artifacts.require('ChessGame');
 const Factory = artifacts.require('ChessFactory');
 const truffleAssert = require('truffle-assertions');
@@ -40,15 +39,6 @@ contract("Simulate Game:", (accounts) => {
     let difference = afterBalance.sub(beforeBalance);
     console.log("Difference : ", difference.toString());
   }
-
-  it(" send 10000 Ubiquito to ChessFactory", async() => {
-    let coin = await Coin.deployed();
-    await truffleAssert.passes(
-      coin.transfer(Factory.address,10000,{from: Owner})
-    );
-    let balance = await coin.balanceOf(Factory.address);
-    console.log("ChessFactory Ubi balance : ",balance.toString());
-  });
   
   it(" create game with 10 max moves and minimum eth bid 10, min coin bid as 100, rate as ", async() => {
     let factory = await Factory.deployed();
@@ -63,7 +53,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 1,web3.utils.toHex("e4"),{from: W1, value: 10})
+      game.performMoveUsingEther(0,1,web3.utils.toHex("e4"),{from: W1, value: 10})
     )
   }); 
 
@@ -72,7 +62,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 2,web3.utils.toHex("e5"),{from: B1, value: 10})
+      game.performMoveUsingEther(0,2,web3.utils.toHex("e5"),{from: B1, value: 10})
     )
   });
 
@@ -81,7 +71,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 1,web3.utils.toHex("c4"),{from: W2, value: 50})
+      game.performMoveUsingEther(0,1,web3.utils.toHex("c4"),{from: W2, value: 50})
     )
   }); 
 
@@ -90,7 +80,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 2,web3.utils.toHex("c5"),{from: B2, value: 50})
+      game.performMoveUsingEther(0,2,web3.utils.toHex("c5"),{from: B2, value: 50})
     )
   });
 
@@ -99,7 +89,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 1,web3.utils.toHex("Qh5"),{from: W3, value: 100})
+      game.performMoveUsingEther(0,1,web3.utils.toHex("Qh5"),{from: W3, value: 100})
     )
   }); 
 
@@ -108,7 +98,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     await truffleAssert.passes(
-      game.performMoveUsingEther(0, 2,web3.utils.toHex("Nf6"),{from: B3, value: 10})
+      game.performMoveUsingEther(0,2,web3.utils.toHex("Nf6"),{from: B3, value: 10})
     )
   });
 
@@ -117,7 +107,7 @@ contract("Simulate Game:", (accounts) => {
     let gameAddress = await factory.getLatestGame(); 
     let game = await Game.at(gameAddress);
     truffleAssert.passes(
-      await game.performMoveUsingEther(1, 1,web3.utils.toHex("Qxf7#"),{from: W4, value:100})
+      await game.performMoveUsingEther(1,1,web3.utils.toHex("Qxf7#"),{from: W4, value:100})
     );
   });
   
@@ -149,3 +139,72 @@ contract("Simulate Game:", (accounts) => {
 
 
 });
+
+
+  // it(" W1 withdraws", async() => {
+  //   // let factory = await Factory.deployed();
+  //   // let gameAddress = await factory.getLatestGame(); 
+  //   // let game = await Game.at(gameAddress);
+  //   // let beforeBalance = await web3.eth.getBalance(W1);
+  //   // beforeBalance = new BN()
+  //   // console.log("Before Balance : ", beforeBalance.toString());
+  //   // await truffleAssert.passes(
+  //   //   game.collectRewards(W1,{from: W1}),
+  //   // );
+  //   // let afterBalance = await web3.eth.getBalance(W1);
+  //   // console.log("After Balance  : ", afterBalance.toString());
+  //   // let difference = BN(afterBalance).minus(BN(beforeBalance));
+  //   // console.log("Difference : ", difference);
+  //   // assert.equal(difference,10);
+  //   withdrawFunds(W1);
+  // });
+
+  // it(" B1 withdraws", async() => {
+  //   let factory = await Factory.deployed();
+  //   let gameAddress = await factory.getLatestGame(); 
+  //   let game = await Game.at(gameAddress);
+  //   let beforeBalance = await web3.eth.getBalance(B1);
+  //   console.log("Before Balance : ", beforeBalance.toString());
+  //   await truffleAssert.reverts(
+  //     game.collectRewards(B1,{from: B1}),
+  //     "ChessGame: You did not win!"
+  //   );
+  //   let afterBalance = await web3.eth.getBalance(B1);
+  //   console.log("After Balance  : ", afterBalance.toString());
+  //   console.log("Difference : ", BN(afterBalance).minus(BN(beforeBalance)));
+  // });
+
+  // it(" W5 did not play but tries to withdraw", async() => {
+  //   let factory = await Factory.deployed();
+  //   let gameAddress = await factory.getLatestGame(); 
+  //   let game = await Game.at(gameAddress);
+  //   let beforeBalance = await web3.eth.getBalance(W5);
+    
+  //   console.log("Before Balance : ", beforeBalance.toString());
+  //   await truffleAssert.reverts(
+  //     game.collectRewards(W5,{from: W5}),
+  //     "ChessGame: You have not played this Game!"
+  //   );
+  //   let afterBalance = await web3.eth.getBalance(W5);
+  //   console.log("After Balance  : ", afterBalance.toString());
+  //   // console.log("Difference : ", afterBalance.minus(beforeBalance));
+  // });
+
+  // it(" W4 withdraws", async() => {
+  //   // let factory = await Factory.deployed();
+  //   // let gameAddress = await factory.getLatestGame(); 
+  //   // let game = await Game.at(gameAddress);
+  //   // let beforeBalance = await web3.eth.getBalance(W4);
+  //   // console.log("TYPE : ", typeof(beforeBalance));
+  //   // console.log("Before Balance : ", beforeBalance.toString());
+  //   // await truffleAssert.passes(
+  //   //   game.collectRewards(W4,{from: W4}),
+  //   // );
+  //   // let afterBalance = await web3.eth.getBalance(W4);
+  //   // console.log("After Balance  : ", afterBalance.toString());
+  //   // console.log("Difference : ", afterBalance.minus(beforeBalance));
+  //   withdrawFunds(W4);
+
+  // });
+
+
