@@ -6,4 +6,8 @@ module.exports = async function(deployer) {
   const accounts = await web3.eth.getAccounts();
   await deployer.deploy(ubiquito,100000);
   await deployer.deploy(gameFactoryContract,ubiquito.address);
+
+
+
+  
 };

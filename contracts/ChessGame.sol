@@ -67,22 +67,13 @@ contract ChessGame {
     mapping(address => Player) private player;
     mapping(Sides => SideStruct) private side;
 
-    event GameCreated(uint256 _gameID, address _gameContractAddress);
-
-    event Moved(address _player, string _fen, uint256 _bid);
-
     event GameResult(
         uint256 _gameId,
         Result _gameResult,
-        Sides _winner,
-        uint256 _blackPool,
-        uint256 _whitePool,
-        uint256 _blackCoins,
-        uint256 _whiteCoins
+        Sides _winner
     );
 
     event RewardedPlayers(uint256 _gameID, Sides _side);
-
 
     constructor(
         uint256 _gameId,
@@ -103,7 +94,6 @@ contract ChessGame {
         UBIQUITO_PRICE = _tokenPrice;
         COIN_OWNER = _coinOwner;
         CHESS_FACTORY = _chessFactory;
-        emit GameCreated(_gameId,address(this)); // Newly added
     }
 
     
@@ -268,25 +258,7 @@ contract ChessGame {
     {
         FEN = _fen;
         addData(msg.sender, _side, msg.value, 0);
-        emit Moved(msg.sender, _fen, msg.value);
-        if (_result == Result.NA) {
-            turn = switchTeam(_side);
-        } else {
-            GAME_RESULT = _result;
-            if (_result == Result.WinLoss) {
-                WINNER = _side;
-                LOSER = switchTeam(_side);
-            }
-            emit GameResult(
-                GAME_ID,
-                GAME_RESULT,
-                WINNER,
-                side[Sides.White].pool,
-                side[Sides.Black].pool,
-                side[Sides.White].coins,
-                side[Sides.Black].coins
-            );
-        }
+        checkResult(_result,_side);
     }
 
     ///@notice Perform a move by bidding ERC20 token
@@ -312,26 +284,7 @@ contract ChessGame {
     {
         FEN = _fen;
         addData(msg.sender, _side, 0, _coins);
-        emit Moved(msg.sender, _fen, _coins);
-        if (_result == Result.NA) {
-
-            turn = switchTeam(_side);
-        } else {
-            GAME_RESULT = _result;
-            if (_result == Result.WinLoss) {
-                WINNER = _side;
-                LOSER = switchTeam(_side);
-            }
-            emit GameResult(
-                GAME_ID,
-                GAME_RESULT,
-                WINNER,
-                side[WINNER].pool,
-                side[LOSER].pool,
-                side[WINNER].coins,
-                side[LOSER].coins
-            );
-        }
+        checkResult(_result,_side);
         // UBIQUITO.approve(address(this), _coins); // To be done via backend! Sender must approve that ChessGame can use my Ubiquito!!
         UBIQUITO.transferFrom(msg.sender, address(this), _coins);
     }
@@ -359,6 +312,28 @@ contract ChessGame {
             uint256 coinReward = sideReward.div(UBIQUITO_PRICE) + sideCoinReward;
             uint256 totalCoins = playerCoins + coinReward;
             UBIQUITO.transfer(recipient, totalCoins);
+        }
+    }
+
+
+    function checkResult(
+        Result _result,
+        Sides _side
+    ) internal
+    {
+        if (_result == Result.NA) {
+            turn = switchTeam(_side);
+        } else {
+            GAME_RESULT = _result;
+            if (_result == Result.WinLoss) {
+                WINNER = _side;
+                LOSER = switchTeam(_side);
+            }
+            emit GameResult(
+                GAME_ID,
+                GAME_RESULT,
+                WINNER
+            );
         }
     }
 
