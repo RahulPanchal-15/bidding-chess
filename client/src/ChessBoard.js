@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import Chess from 'chess.js';
 
+
 import {Chessboard, INPUT_EVENT_TYPE, COLOR, MARKER_TYPE} from "cm-chessboard"
 
 // import "./styles/page.css"
@@ -61,18 +62,18 @@ class ChessBoard extends Component {
   getResult = (chessGame) => {
     let result = 0 // NA
     if (chessGame.in_checkmate()) {
-      alert(
-        `CHECKMATE! ${chessGame.turn() === "w" ? "Black" : "White"} wins (o゜▽゜)o☆`
-      );
+      // alert(
+      //   `CHECKMATE! ${chessGame.turn() === "w" ? "Black" : "White"} wins (o゜▽゜)o☆`
+      // );
       result = 1; // win
     } else if (chessGame.in_draw()) {
-      alert(`DRAW! No one wins ⚆_⚆`);
+      // alert(`DRAW! No one wins ⚆_⚆`);
       result = 2;
     } else if (chessGame.in_stalemate()) {
-      alert(`STALEMATE! Too bad ಥ_ಥ`);
+      // alert(`STALEMATE! Too bad ಥ_ಥ`);
       result = 2;
     } else if (chessGame.in_threefold_repetition()) {
-      alert(`THREEFOLD REPETITION! Why you do this ಠ▃ಠ`);
+      // alert(`THREEFOLD REPETITION! Why you do this ಠ▃ಠ`);
       result = 2;
     } else {
       result = 0;
@@ -85,8 +86,7 @@ class ChessBoard extends Component {
     // removes markers from previous move
     event.chessboard.removeMarkers(undefined, MARKER_TYPE.dot);
     
-    
-    if(this.state.result===0){
+    if(parseInt(this.state.result)==0){
 
       if (event.type === INPUT_EVENT_TYPE.moveStart) {
         // event.type == INPUT_EVENT_TYPE.moveStart, render the move markers
@@ -133,7 +133,7 @@ class ChessBoard extends Component {
           hasMoved: true,
           result : this.getResult(this.game)
         });
-        this.props.boardChange(true);
+        this.props.boardChange(true,this.state.result);
         this.board.disableMoveInput();
         return result;
       }

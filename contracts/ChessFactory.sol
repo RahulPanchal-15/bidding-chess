@@ -17,20 +17,17 @@ contract ChessFactory is Ownable {
     uint256 public totalGames = 0;
     IERC20Burnable private UBIQUITO;
     uint256 private INITIAL_GAME_SUPPLY = 200;
-    uint256 private WINNER_SHARE;
-    uint256 private LOSER_SHARE;
-    uint256 private WINNER_COIN_SHARE;
+    uint256 private WINNER_SHARE  = 35;
+    uint256 private LOSER_SHARE = 12;
+    uint256 private WINNER_COIN_SHARE = 60;
     bool private isActive = false;
     
     constructor(
-        IERC20Burnable _ubiquito,
-        uint256 _winnerShare,
-        uint256 _loserShare,
-        uint256 _winnerCoinShare
+        IERC20Burnable _ubiquito
     ) 
     {
         UBIQUITO = _ubiquito;
-        setRewardPercentage(_winnerShare, _loserShare, _winnerCoinShare);
+        setRewardPercentage(WINNER_SHARE,LOSER_SHARE,WINNER_COIN_SHARE);
     }
 
     ///@dev Creates new chess games
@@ -55,7 +52,6 @@ contract ChessFactory is Ownable {
             _minCoinBid,
             UBIQUITO,
             _tokenPrice,
-            owner(),
             payable(address(this))
         );
         UBIQUITO.transfer(address(game), INITIAL_GAME_SUPPLY); // Supply ChessFactory with sufficient Ubiquito!!!

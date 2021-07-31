@@ -44,12 +44,12 @@ class App extends Component {
 
       this.factory_owner = await this.factory.methods.owner().call();
 
-      let currentGameAddress = await this.factory.methods.getLatestGame().call();
-      console.log("Current Game Address!", currentGameAddress)
+      this.currentGameAddress = await this.factory.methods.getLatestGame().call();
+      console.log("Current Game Address!", this.currentGameAddress)
 
       this.chessGame = new this.web3.eth.Contract(
         ChessGame.abi,
-        currentGameAddress
+        this.currentGameAddress
       );
 
       let currentFen = await this.chessGame.methods.getFEN().call();
@@ -57,7 +57,10 @@ class App extends Component {
 
       let currentPlay = await this.chessGame.methods.turn().call();
       
+      this.ubiBalance = await this.ubi.methods.balanceOf(this.accounts[0]).call();
       this.minBid =  await this.chessGame.methods.MIN_BID().call();
+      console.log("this.minBid : ",this.minBid);
+      this.minCoinBid = await this.chessGame.methods.MIN_COIN_BID().call();
 
       let currentResult = await this.chessGame.methods.GAME_RESULT().call();
 
@@ -78,7 +81,7 @@ class App extends Component {
     }
   };
 
-  handleBoardChange = (moveStatus) => {
+  handleBoardChange = (moveStatus,result) => {
     this.setState({
       hasMoved: moveStatus
     });
@@ -90,42 +93,46 @@ class App extends Component {
   }
 
   activateBidButtons = () => {
-    let buttons = document.querySelector("#bid-buttons").children;
+    let buttons = document.querySelectorAll('#bid-buttons')[0];
+    // let buttons = document.querySelectorAll("#bid-buttons").children;
+    console.log(buttons);
     for(var counter = 0; counter<buttons.length;counter++){
       buttons[counter].className = "btn btn-dark";
     }
   }
 
   deactivateBidButtons = () => {
-    let buttons = document.querySelector("#bid-buttons").children;
+    let buttons = document.querySelector("#bid-buttons, #coin-bid-buttons").children;
     for(var counter = 0; counter<buttons.length;counter++){
       buttons[counter].className = "btn btn-outline-dark";
     }
   }
-
-
   
-  handleSubmitBidEther = (event) => {
+  handleSubmitBidEther = async(event) => {
     if(this.gameRef.current.state.hasMoved){
-      const bid = event.target.value;
+      const bid = event.currentTarget.value;
       const result = this.gameRef.current.state.result;
       const newFEN = this.gameRef.current.state.final_fen;
       const side = this.state.turn;
-      this.chessGame.methods.performMoveUsingEther(result,side,newFEN).send({value:bid,from:this.accounts[0]});
+      console.log("Ether BID : ",bid);
+      await this.chessGame.methods.performMoveUsingEther(result,side,newFEN).send({value:bid,from:this.accounts[0]});
     }
     else{
       alert("Make a move!");
     }
   }
 
-  handleSubmitBidCoin = (event) => {
+  handleSubmitBidCoin = async(event) => {
     if(this.gameRef.current.state.hasMoved){
-      const bid = event.target.value;
+      const bid = event.currentTarget.value;
       const result = this.gameRef.current.state.result;
       const newFEN = this.gameRef.current.state.final_fen;
       const side = this.state.turn;
-      this.chessGame.methods.performMoveUsingEther(result,side,newFEN).send({value:bid,from:this.factory_owner});
-      
+      console.log("BID: ",bid);
+      await this.ubi.methods.approve(this.currentGameAddress,bid).send({from:this.accounts[0]})
+      .then( async() => {
+        await this.chessGame.methods.performMoveUsingCoin(result,side,bid,newFEN).send({from:this.accounts[0]});
+      })
     }
     else{
       alert("Make a move!");
@@ -136,9 +143,8 @@ class App extends Component {
     this.chessGame.events.GameResult({},(event)=>{})
     .on("data", (event)=> {
       let gameId = event.returnValues._gameId;
-      this.factory.methods.setReward(gameId).call({from:accounts[0]}); //OWNER
-
-
+      console.log("Game over : ",gameId);
+      this.factory.methods.setReward(gameId).call({from: this.factory_owner}); //OWNER
     });
   }
 
@@ -153,13 +159,25 @@ class App extends Component {
     return (
       <div className="App">
         <div className="App-header">
-          Bidding Chess
+          Bidding chess
+          <ul className ="navbar-nav ml-auto">
+            <li className = "nav-item">
+              UBI Balance: {this.ubiBalance}
+            </li>
+          </ul>
+
+
         </div>
         <ChessBoard fen={this.state.fen} result = {this.state.result} turn={this.state.turn} ref={this.gameRef} boardChange={this.handleBoardChange}/>
         <div id="bid-buttons" className="container">
           <button id="bid-button" className="btn btn-outline-dark" name="bid1" value={this.minBid} onClick={this.handleSubmitBidEther}>{this.minBid}<img id="eth-logo" src="./ethereum.svg" alt="ether"/></button>
           <button id="bid-button" className="btn btn-outline-dark" name="bid2" value={this.minBid * 5} onClick={this.handleSubmitBidEther}>{this.minBid*5}<img id="eth-logo" src="./ethereum.svg" alt="ether"/></button>
           <button id="bid-button" className="btn btn-outline-dark" name="bid3" value={this.minBid * 10} onClick={this.handleSubmitBidEther}>{this.minBid*10}<img id="eth-logo" src="./ethereum.svg" alt="ether"/></button>
+        </div>
+        <div id="bid-buttons" className="container">
+          <button id="bid-button" className="btn btn-outline-dark" name="bid1" value={this.minCoinBid} onClick={this.handleSubmitBidCoin}>{this.minCoinBid}<img id="eth-logo" src="./ethereum.svg" alt="ether"/></button>
+          <button id="bid-button" className="btn btn-outline-dark" name="bid2" value={this.minCoinBid * 5} onClick={this.handleSubmitBidCoin}>{this.minCoinBid*5}<img id="eth-logo" src="./ethereum.svg" alt="ether"/></button>
+          <button id="bid-button" className="btn btn-outline-dark" name="bid3" value={this.minCoinBid * 10} onClick={this.handleSubmitBidCoin}>{this.minCoinBid*10}<img id="eth-logo" src="./ethereum.svg" alt="ether"/></button>
         </div>
       </div>
     );

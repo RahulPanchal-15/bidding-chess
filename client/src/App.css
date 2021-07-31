@@ -11,22 +11,24 @@
 }
 
 .App-header {
-  background-color: teal;
+  background-color: dodgerblue;
   height: 8vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  padding-left: 2vh;
+  padding-right: 2vh;
 }
 
 .App-link {
-  color: #09d3ac;
+  color: dodgerblue;
 }
 
-#bid-buttons {
-  background-color: cornflowerblue;
+#bid-buttons, #coin-bid-buttons {
+  background-color: dodgerblue;
   margin-top: 20px;
   border-radius: 3vh;
   padding: 1vh;
