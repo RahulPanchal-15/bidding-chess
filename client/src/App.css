@@ -11,7 +11,7 @@
 }
 
 .App-header {
-  background-color: dodgerblue;
+  /* background-color: dodgerblue; */
   height: 8vh;
   display: flex;
   flex-direction: row;
@@ -27,12 +27,51 @@
   color: dodgerblue;
 }
 
-#bid-buttons, #coin-bid-buttons {
+.nav-data {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.wrapper {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+
+#sidebar {
+  min-width: 250px;
+  max-width: 250px;
+  min-height: 100vh;
+}
+
+#sidebar.active {
+  margin-left: -250px;
+}
+
+@media (max-width: 768px) {
+  #sidebar {
+      margin-left: -250px;
+  }
+  #sidebar.active {
+      margin-left: 0;
+  }
+}
+
+#row {
   background-color: dodgerblue;
+  margin: auto;
   margin-top: 20px;
   border-radius: 3vh;
+  padding: 0.2rem;
+  width: 32vw;
+  padding: 5px;
+}
+
+#bid-buttons, #coin-bid-buttons {
+  background-color: dodgerblue;
+  border-radius: 3vh;
   padding: 1vh;
-  width: 65vh;
+  width: 32vw;
   display: flex;
   justify-content: space-around;
 }
