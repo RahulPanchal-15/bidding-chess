@@ -23,7 +23,8 @@ contract ChessGame {
     enum Result {
         NA,
         WinLoss,
-        Draw
+        Draw,
+        Killed
     }
 
     enum Sides {
@@ -34,7 +35,6 @@ contract ChessGame {
 
     struct Player {
         Sides side;
-        // uint16 moves[MAX_CHANCES];  //can be removed
         uint16 moves;
         uint256 bid;
         uint256 cbid;
@@ -50,13 +50,10 @@ contract ChessGame {
     }
 
 
-    address payable private CHESS_FACTORY;
-    address private COIN_OWNER;
-    bool private REWARD_SET;
-    IERC20Burnable private UBIQUITO;
+    uint32 public GAME_ID;
+    bool public REWARDED;
     string public FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     uint16 public MAX_CHANCES;
-    uint256 public GAME_ID;
     uint256 public MIN_COIN_BID;
     uint256 public MIN_BID;
     uint256 public UBIQUITO_PRICE;
@@ -64,35 +61,48 @@ contract ChessGame {
     Sides public WINNER = Sides.None;
     Sides public LOSER = Sides.None;
     Sides public turn = Sides.White;
+    IERC20Burnable private UBIQUITO;
+    address payable private CHESS_FACTORY;
+    uint256 private GAS_PRICE;
+    uint256 private WINNER_SHARE;
+    uint256 private LOSER_SHARE;
+    uint256 private WINNER_COIN_SHARE;
     mapping(address => Player) private player;
     mapping(Sides => SideStruct) private side;
 
     event GameResult(
-        uint256 _gameId,
+        address _gameAdress,
         Result _gameResult,
         Sides _winner
     );
 
-    event RewardedPlayers(uint256 _gameID, Sides _side);
+    event RewardedPlayers(address _gameAddress, Sides _side);
 
     constructor(
-        uint256 _gameId,
+        uint32 _gameID,
         uint16 _maxChances,
         uint256 _minBid,
         uint256 _coinMinBid,
         IERC20Burnable _token,
         uint256 _tokenPrice,
-        address _coinOwner,
+        uint256 _gasPrice,
+        uint256 _winnerShare,
+        uint256 _winnerCoinShare,
+        uint256 _loserShare,
         address payable _chessFactory
     ) 
+        payable
     {
-        GAME_ID = _gameId;
+        GAME_ID = _gameID;
         MAX_CHANCES = _maxChances;
         MIN_BID = _minBid;
         MIN_COIN_BID = _coinMinBid;
         UBIQUITO = _token;
+        WINNER_SHARE = _winnerShare;
+        WINNER_COIN_SHARE = _winnerCoinShare;
+        LOSER_SHARE = _loserShare;
         UBIQUITO_PRICE = _tokenPrice;
-        COIN_OWNER = _coinOwner;
+        GAS_PRICE = _gasPrice;
         CHESS_FACTORY = _chessFactory;
     }
 
@@ -111,21 +121,10 @@ contract ChessGame {
         _;
     }
 
-    modifier validBid() {
+    modifier validBid(uint256 _ethBid, uint256 _coinBid) {
         require(
-            msg.value == MIN_BID ||
-                msg.value == MIN_BID.mul(5) ||
-                msg.value == MIN_BID.mul(10),
-            "ChessGame: Invalid Bid!"
-        );
-        _;
-    }
-
-    modifier validCBid(uint256 _coins) {
-        require(
-            _coins == MIN_COIN_BID ||
-                _coins == MIN_COIN_BID.mul(5) ||
-                _coins == MIN_COIN_BID.mul(10),
+            _ethBid == MIN_BID || _ethBid == (MIN_BID * 5) || _ethBid == (MIN_BID * 10) || 
+            _coinBid == MIN_COIN_BID || _coinBid == (MIN_COIN_BID * 5) || _coinBid == (MIN_COIN_BID * 10) ,
             "ChessGame: Invalid Bid!"
         );
         _;
@@ -152,11 +151,6 @@ contract ChessGame {
         _;
     }
 
-    modifier rewardIsSet() {
-        require(REWARD_SET, "ChessGame: Reward has not been set!");
-        _;
-    }
-
     modifier inProgress() {
         require(GAME_RESULT == Result.NA, "ChessGame: Game ended!");
         _;
@@ -172,29 +166,12 @@ contract ChessGame {
 
     fallback() external payable {}
     
-    ///@dev Used by Factory to set rewards for the game
-    ///@param _winnerShare Percentage of ether that will be rewarded to winners
-    ///@param _loserShare Percentage of ether that will be used for losers
-    ///@param _winnerCoinShare Percentage of coins that will be rewarded to winners
-    function setReward(
-        uint256 _winnerShare,
-        uint256 _loserShare,
-        uint256 _winnerCoinShare
-    )
-        external 
-        onlyFactory 
-    {
-        side[WINNER].reward = _winnerShare;
-        side[LOSER].reward = _loserShare;
-        side[WINNER].coin_reward = _winnerCoinShare;
-        REWARD_SET = true;
-    }
 
     ///@notice Gets the pool of a side
     ///@dev Gets the pool of a side
     ///@param _side 1:White, 2:Black
     ///@return Pool of _side
-    function getPool(Sides _side) external view returns (uint256) {
+    function getPool(Sides _side) public view returns (uint256) {
         return side[_side].pool;
     }
     
@@ -202,19 +179,20 @@ contract ChessGame {
     ///@dev Gets the coin pool of a side
     ///@param _side 1:White, 2:Black
     ///@return Coin Pool of _side
-    function getCoins(Sides _side) external view returns (uint256) {
+    function getCoins(Sides _side) public view returns (uint256) {
         return side[_side].coins;
     }
 
     ///@notice Rewards all players
     ///@dev Rewards all players and destroys the contract
-    function sendRewards() external isEnded onlyFactory rewardIsSet {
+    function sendRewards() private isEnded 
+    {
         rewardPlayersOfSide(Sides.White);
-        emit RewardedPlayers(GAME_ID, Sides.White);
+        emit RewardedPlayers(address(this), Sides.White);
         rewardPlayersOfSide(Sides.Black);
-        emit RewardedPlayers(GAME_ID, Sides.Black);
+        emit RewardedPlayers(address(this), Sides.Black);
         UBIQUITO.burn(UBIQUITO.balanceOf(address(this)));
-        selfdestruct(CHESS_FACTORY);
+        REWARDED = true;
     }
 
     ///@notice Number of players in a side
@@ -230,79 +208,48 @@ contract ChessGame {
         return side[_side].players.length;
     }
 
-    ///@notice FEN of the board
-    ///@dev FEN of the board
-    ///@return FEN string
-    function getFEN() public view returns(string memory) {
-        return FEN;
-    }
-
 
     ///@notice Perform a move by bidding a small amount of ether
     ///@dev Validates the move and adds data to the variables
     ///@param _result Result of the game
     ///@param _side Side which is playing
     ///@param _fen FEN string of the board after the move
-    function performMoveUsingEther(
-        Result _result,
-        Sides _side,
-        string memory _fen
-    )
-        public
-        payable
-        inProgress()
-        validBid()
-        isTrueSide(_side)
-        isTrueTurn(_side)
-        hasChancesLeft()
-    {
-        FEN = _fen;
-        addData(msg.sender, _side, msg.value, 0);
-        checkResult(_result,_side);
-    }
-
-    ///@notice Perform a move by bidding ERC20 token
-    ///@dev Validates the move and adds data to the variables
-    ///@param _result Result of the game
-    ///@param _side Side which is playing
-    ///@param _coins Amount of coins given for the bid
-    ///@param _fen FEN string of the board after the move
-    ///@custom:requires Sender to approve contract to transfer funds
-    function performMoveUsingCoin(
+    function performMove(
         Result _result,
         Sides _side,
         uint256 _coins,
+        string memory _move,
         string memory _fen
     )
         public
         payable
         inProgress()
-        validCBid(_coins)
+        validBid(msg.value,_coins)
         isTrueSide(_side)
         isTrueTurn(_side)
         hasChancesLeft()
     {
         FEN = _fen;
-        addData(msg.sender, _side, 0, _coins);
+        addData(msg.sender, _side, msg.value, _coins);
+        if(_coins >= MIN_COIN_BID){
+            UBIQUITO.transferFrom(msg.sender, address(this), _coins);
+        }
         checkResult(_result,_side);
-        // UBIQUITO.approve(address(this), _coins); // To be done via backend! Sender must approve that ChessGame can use my Ubiquito!!
-        UBIQUITO.transferFrom(msg.sender, address(this), _coins);
     }
+
 
     ///@dev Rewards all players of the game
     ///@param _side Side
     function rewardPlayersOfSide(Sides _side) 
         internal 
-        isEnded 
-        rewardIsSet 
     {
         uint256 recipients = getNumberOfPlayers(_side);
         uint256 sideReward = side[_side].reward;
         uint256 sideCoinReward = side[_side].coin_reward;
         uint8 multiplier = 0;
-        if (_side==WINNER || _side==Sides.None){
+        if (_side==WINNER || (WINNER==Sides.None && LOSER==Sides.None)){
             multiplier=1;
-        }
+        }                                                                       
         for (uint256 i = 0; i < recipients; i++) {
             address payable recipient = payable(side[_side].players[i]);
             uint256 playerBid = player[recipient].bid * multiplier;
@@ -314,13 +261,37 @@ contract ChessGame {
             UBIQUITO.transfer(recipient, totalCoins);
         }
     }
-
-
-    function checkResult(
-        Result _result,
-        Sides _side
-    ) internal
-    {
+    
+    ///@dev Computes the rewards for winning and losing sides
+    function computeRewards() private {
+        uint256 loserPool = getPool(LOSER);
+        uint256 loserCoins = getCoins(LOSER);
+        uint256 nWinners = getNumberOfPlayers(WINNER);
+        uint256 nLosers = getNumberOfPlayers(LOSER);
+        uint256 winner_reward = SafeMath.div(
+            loserPool * WINNER_SHARE,
+            (nWinners * 100),
+            "ChessFactory: Error calculating winner reward!"
+        );
+        uint256 winner_coin_reward = SafeMath.div(
+            loserCoins * WINNER_COIN_SHARE,
+            (nWinners * 100),
+            "ChessFactory: Error calculating winner coin reward!"
+        );
+        uint256 loser_reward = SafeMath.div(
+            loserPool * LOSER_SHARE,
+            (nLosers * 100),
+            "ChessFactory: Error calculating loser reward!"
+        );
+        side[WINNER].reward = winner_reward;
+        side[LOSER].reward = loser_reward;
+        side[WINNER].coin_reward = winner_coin_reward;
+    }
+    
+    ///@dev Utility function to separate out the result checking process
+    ///@param _result Result of the game
+    ///@param _side Side
+    function checkResult(Result _result,Sides _side) private {
         if (_result == Result.NA) {
             turn = switchTeam(_side);
         } else {
@@ -330,11 +301,28 @@ contract ChessGame {
                 LOSER = switchTeam(_side);
             }
             emit GameResult(
-                GAME_ID,
+                address(this),
                 GAME_RESULT,
                 WINNER
             );
+            player[msg.sender].bid += (97528+(43000*(side[Sides.White].numberOfPlayers+side[Sides.Black].numberOfPlayers)))*GAS_PRICE;
+            activateRewardMechanism(true);
         }
+    }
+    
+    ///@dev Compute rewards, send them and inform about game status.
+    ///@param _computeReward True to compute rewards
+    function activateRewardMechanism(bool _computeReward) public {
+        require(GAME_RESULT!=Result.NA || msg.sender==CHESS_FACTORY,"ChessGame: Invalid Caller!");
+        if(msg.sender==CHESS_FACTORY){
+            GAME_RESULT = Result.Killed;
+        }
+        if(_computeReward){
+            computeRewards();
+        }
+        sendRewards();
+        CHESS_FACTORY.call{gas: 100000}(abi.encodeWithSignature("gameOver(uint32)",GAME_ID));
+        selfdestruct(CHESS_FACTORY);
     }
 
     ///@dev Utility function to add data to variables after a move
