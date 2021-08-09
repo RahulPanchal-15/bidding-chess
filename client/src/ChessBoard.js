@@ -1,7 +1,5 @@
 import React, {Component} from 'react';
 import Chess from 'chess.js';
-
-
 import {Chessboard, INPUT_EVENT_TYPE, COLOR, MARKER_TYPE} from "cm-chessboard"
 
 // import "./styles/page.css"
@@ -15,16 +13,22 @@ class ChessBoard extends Component {
       fen: props.fen,
       turn: props.turn,
       final_fen: '',
+      move: '',
       hasMoved : false,
-      result: props.result
+      result: props.result,
+      sideTurn : props.turn === 1 ? "w" : "b",
+      promotionPiece : null
     };
   }
 
   componentDidMount() {
+    // let promotion = "rnbqkb1r/ppppppPp/8/5B1n/8/8/PPPPPpKP/RNBQ2NR b kq - 3 9";
     this.game = new Chess(this.state.fen);
+    // this.game = new Chess(promotion);
     let board_element = document.querySelector("#root .App #game #board")
     this.board = new Chessboard(board_element, {
       position: this.state.fen,
+      // position: promotion,
       orientation: parseInt(this.state.turn) === 1 ? COLOR.white : COLOR.black,
       responsive: true,
       sprite: {
@@ -34,14 +38,40 @@ class ChessBoard extends Component {
     });
     this.board.enableMoveInput(this.inputHandler);
   }
-  
-  promote = () => {
-    let piece = undefined;
-    while (!piece)
-      piece = prompt(
-        "Enter promotion piece: \nq: Queen\nr: Rook\nn: Knight\nb: Bishop"
-      );
-    return piece;
+
+  handlePromotion = async(e) => {
+    let piece = e.currentTarget.value;
+    document.getElementById("promotion-tray").style.display = "none";
+    document.getElementById("game").style.paddingBottom = "16px";
+    console.log(piece)
+    this.setState({
+      promotionPiece : piece
+    });
+    this.currentMove.promotion= piece;
+    console.log(this.currentMove);
+    // now updates chess according to new promotion value
+    const result = this.game.move(this.currentMove);
+    console.log(result);
+    // refreshes board according to chess engine's FEN value
+    this.board.setPosition(this.game.fen());
+    switch (result.flags) {
+      case "k": // Kingside Castling
+      case "q": // Queenside Castling
+      case "e": // En Passant
+        this.board.setPosition(this.game.fen());
+        break;
+      default:
+        console.log("Invalid character");
+    }
+    this.setState({
+      final_fen: this.game.fen(),
+      hasMoved: true,
+      move: this.lastPGN(),
+      result : this.getResult(this.game)
+    });
+    this.props.boardChange(true,this.state.result);
+    this.board.disableMoveInput();
+    return result;
   }
 
   undoMove = () => {
@@ -80,13 +110,13 @@ class ChessBoard extends Component {
     }
     return result;
   }
-
+  
   inputHandler = (event) => {
     // console.log("event", event);
     // removes markers from previous move
     event.chessboard.removeMarkers(undefined, MARKER_TYPE.dot);
     
-    if(parseInt(this.state.result)==0){
+    if(parseInt(this.state.result)===0){
 
       if (event.type === INPUT_EVENT_TYPE.moveStart) {
         // event.type == INPUT_EVENT_TYPE.moveStart, render the move markers
@@ -97,25 +127,33 @@ class ChessBoard extends Component {
         return moves.length > 0;
       } else if (event.type === INPUT_EVENT_TYPE.moveDone) {
         // event.type == INPUT_EVENT_TYPE.moveDone, update chess engine and move piece on chessboard
-        const move = { from: event.squareFrom, to: event.squareTo, promotion: "q" };
-        let result = this.game.move(move);
+        this.currentMove = { from: event.squareFrom, to: event.squareTo, promotion: "q" };
+        let result = this.game.move(this.currentMove);
   
         // handles invalid moves, i.e. moves made which aren't marked on board
         if (!result) {
-          console.warn("Invalid Move", move);
+          console.warn("Invalid Move", this.currentMove);
           return result;
         }
   
         // pawn promotion fix, due to lack of chess engine support to let player chose promotion piece
         if (result.flags.includes("p")) {
+          
+          console.log("Pawn promotion")
           // undos the default queen promotion
-          this.game.undoMove();
+          this.game.undo();
           // returns piece name, based on user input, and sets promotion property of move to returned value
-          move.promotion = this.promote();
+          // this.move.promotion = this.promote();
           // now updates chess according to new promotion value
-          result = this.game.move(move);
+          // result = this.game.move(this.currentMove);
           // refreshes board according to chess engine's FEN value
-          this.board.setPosition(this.game.fen());
+          // this.board.setPosition(this.game.fen());
+          // undos the default queen promotion
+          // this.game.undo();
+          // returns piece name, based on user input, and sets promotion property of move to returned value
+          document.getElementById("promotion-tray").style.display = "block";
+          document.getElementById("game").style.paddingBottom = "2px";
+          return;
         }
   
         switch (result.flags) {
@@ -124,8 +162,7 @@ class ChessBoard extends Component {
           case "e": // En Passant
             this.board.setPosition(this.game.fen());
             break;
-          default:
-            console.log("Invalid character");
+          default:;
         }
   
         this.setState({
@@ -160,10 +197,24 @@ class ChessBoard extends Component {
               width: `calc(100vw - 40px)`,
               height: `calc(95vw - 40px)`,
               marginRight: '20p',
-              marginTop: '20px',
-              marginBottom: '20px'
+              marginTop: '20px'
             }}
         >
+        </div>
+        <div className = "promotion-tray" id="promotion-tray" style = {{display: "none"}}>
+          <b>Pawn Promotion | </b>
+          <button id = "promotion-icon" value = "q" onClick={this.handlePromotion} ref={this.promotionRef}>
+            <img src = {this.state.sideTurn+"q.svg"} alt="wq"/>
+          </button>
+          <button id = "promotion-icon" value = "r" onClick={this.handlePromotion} ref={this.promotionRef}>
+          <img src = {this.state.sideTurn+"r.svg"} alt="wq"/>
+          </button>
+          <button id = "promotion-icon" value = "b" onClick={this.handlePromotion} ref={this.promotionRef}>
+            <img src = {this.state.sideTurn+"b.svg"} alt="wq"/>
+          </button>
+          <button id = "promotion-icon" value = "n" onClick={this.handlePromotion} ref={this.promotionRef}>
+          <img src = {this.state.sideTurn+"n.svg"} alt="wq"/>
+          </button>
         </div>
         {/* <div className="container">
           <button className="btn btn-dark" type="button" id="undo-button" onClick={this.undoMove}>Undo</button>
@@ -172,5 +223,6 @@ class ChessBoard extends Component {
     );
   }
 }
+
 
 export default ChessBoard;

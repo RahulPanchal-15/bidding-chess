@@ -7,9 +7,10 @@ const getWeb3 = () =>
       // Modern dapp browsers...
       if (window.ethereum) {
         const web3 = new Web3(window.ethereum);
+        web3.eth.handleRevert = true;
         try {
           // Request account access if needed
-          await window.ethereum.enable();
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
           // Accounts now exposed
           resolve(web3);
         } catch (error) {

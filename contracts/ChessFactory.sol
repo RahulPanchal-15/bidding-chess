@@ -13,50 +13,51 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract ChessFactory is Ownable {
     using SafeMath for uint256;
 
-    mapping(uint256 => ChessGame) public games;
-    uint256 public totalGames = 0;
+    mapping(uint32 => ChessGame) public games;
+    uint32 public totalGames = 0;
     IERC20Burnable private UBIQUITO;
-    uint256 private INITIAL_GAME_SUPPLY = 200;
+    uint256 private INITIAL_GAME_SUPPLY = 2000;
     uint256 private WINNER_SHARE  = 35;
     uint256 private LOSER_SHARE = 12;
     uint256 private WINNER_COIN_SHARE = 60;
-    bool private isActive = false;
+    bool public isActive = false;
+    uint16 private MAX_CHANCES = 10;
+    uint256 private MIN_BID = 10000000000;
+    uint256 private MIN_COIN_BID = 100;
+    uint256 private TOKEN_PRICE = 100000002;
+    uint256 private GAS_PRICE = 5;
+    
     
     constructor(
         IERC20Burnable _ubiquito
     ) 
+        payable
     {
         UBIQUITO = _ubiquito;
-        setRewardPercentage(WINNER_SHARE,LOSER_SHARE,WINNER_COIN_SHARE);
     }
 
     ///@dev Creates new chess games
-    ///@param _maxChances Maximum number of chances an address is allowed to play
-    ///@param _minBid Minimum amount for the bid to play a move
-    ///@param _minCoinBid Minimum amount of coins required as a bid to play a move
-    ///@param _tokenPrice Price of coin in terms of wei(x if, 1 coin = x wei) 
-    function createGame(
-        uint16 _maxChances,
-        uint256 _minBid,
-        uint256 _minCoinBid,
-        uint256 _tokenPrice
-    )
-        public onlyOwner 
+    function createGame(uint _gasPrice)public onlyOwner 
     {
         require(isActive==false,"ChessFactory: A game is still in progress!");
         totalGames++;
-        ChessGame game = new ChessGame(
+        ChessGame game = new ChessGame{value: MIN_BID*2000}(
             totalGames,
-            _maxChances,
-            _minBid,
-            _minCoinBid,
+            MAX_CHANCES,
+            MIN_BID,
+            MIN_COIN_BID,
             UBIQUITO,
-            _tokenPrice,
+            TOKEN_PRICE,
+            _gasPrice,
+            WINNER_SHARE,
+            WINNER_COIN_SHARE,
+            LOSER_SHARE,
             payable(address(this))
         );
-        UBIQUITO.transfer(address(game), INITIAL_GAME_SUPPLY); // Supply ChessFactory with sufficient Ubiquito!!!
         games[totalGames] = game;
         isActive = true;
+        GAS_PRICE = _gasPrice;
+        UBIQUITO.transfer(address(game), INITIAL_GAME_SUPPLY); // Supply ChessFactory with sufficient Ubiquito!!!
     }
 
     ///@notice Address of latest game that was created
@@ -72,67 +73,47 @@ contract ChessFactory is Ownable {
         INITIAL_GAME_SUPPLY = _supply;
     }
 
-    ///@dev Set percentages for distribution of loser pool
-    ///@param _winnerShare Percentage of ether that will be rewarded to winners
-    ///@param _loserShare Percentage of ether that will be used for losers
-    ///@param _winnerCoinShare Percentage of coins that will be rewarded to winners
-    function setRewardPercentage(
-        uint256 _winnerShare,
-        uint256 _loserShare,
-        uint256 _winnerCoinShare
-    ) 
-        public onlyOwner 
+    ///@dev Change the default parameters of the game
+    ///@param _maxChances Maximum moves a single player can make
+    ///@param _minBid Minimum bid a player must make in ETH
+    ///@param _minCoinBid Minimum bid a player must make in COIN
+    ///@param _tokenPrice Price set for 1 COIN
+    ///@param _gasPrice Current average gas price (considered to reimburse last player for reward computation)
+    function setGameDefaults(
+        uint16 _maxChances, 
+        uint256 _minBid, 
+        uint256 _minCoinBid, 
+        uint256 _tokenPrice,
+        uint256 _gasPrice
+    )
+        public 
+        onlyOwner 
     {
-        WINNER_SHARE = _winnerShare;
-        LOSER_SHARE = _loserShare;
-        WINNER_COIN_SHARE = _winnerCoinShare;
+        MAX_CHANCES = _maxChances;
+        MIN_BID = _minBid;
+        MIN_COIN_BID = _minCoinBid;
+        TOKEN_PRICE = _tokenPrice;
+        GAS_PRICE = _gasPrice;
     }
 
-    ///@dev Calculate and set rewards for a game
-    ///@param _gameID Id of the game
-    function setRewardFor(uint256 _gameID) public onlyOwner {
-        ChessGame game = games[_gameID];
-        require(
-            game.GAME_RESULT() != ChessGame.Result.NA,
-            "ChessFactory: Game has not ended yet!"
-        );
-        if (game.GAME_RESULT() == ChessGame.Result.Draw) {
-            game.setReward(0, 0, 0);
-        } else {
-            ChessGame.Sides winner = game.WINNER();
-            ChessGame.Sides loser = game.LOSER();
-            uint256 loserPool = game.getPool(loser);
-            uint256 loserCoins = game.getCoins(loser);
-            uint256 nWinners = game.getNumberOfPlayers(winner);
-            uint256 nLosers = game.getNumberOfPlayers(loser);
-            uint256 winner_reward = SafeMath.div(
-                loserPool * WINNER_SHARE,
-                (nWinners * 100),
-                "ChessFactory: Error calculating winner reward!"
-            );
-            uint256 winner_coin_reward = SafeMath.div(
-                loserCoins * WINNER_COIN_SHARE,
-                (nWinners * 100),
-                "ChessFactory: Error calculating winner coin reward!"
-            );
-            uint256 loser_reward = SafeMath.div(
-                loserPool * LOSER_SHARE,
-                (nLosers * 100),
-                "ChessFactory: Error calculating loser reward!"
-            );
-            game.setReward(winner_reward, loser_reward, winner_coin_reward);
-        }
-    }
 
     ///@dev Begins process of sending rewards to winners of a game
     ///@param _gameID Id of the game
-    function rewardWinners(uint256 _gameID) public onlyOwner {
+    function gameOver(uint32 _gameID) public  {
+        require(msg.sender == address(games[_gameID]), "ChessFactory: Invalid caller!");
         ChessGame game = games[_gameID];
-        require(
-            game.GAME_RESULT() != ChessGame.Result.NA,
+        require(game.REWARDED() == true,
             "ChessFactory: Game has not ended yet!"
         );
-        game.sendRewards();
+        isActive = false;
+    }
+    
+    ///@dev Kills the game contract and refunds the bids
+    ///@param _gameID Id of the game
+    ///@param _compute True if rewards need to be computed and False for simple refund
+    function forceKill(uint32 _gameID,bool _compute) public onlyOwner {
+        ChessGame game = games[_gameID];
+        game.activateRewardMechanism(_compute);
         isActive = false;
     }
 }

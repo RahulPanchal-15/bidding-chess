@@ -1,0 +1,27 @@
+.stats-box {
+  width: 75%;
+  padding-top: 2px;
+  border-radius: 2vh;
+  color: black;
+  background-color: #e3f2fd;
+  display: flex;
+  flex-direction: column;
+  overflow-x: unset;
+}
+
+.row {
+  display: flex;
+  justify-content: space-around;
+}
+
+#ubi-logo {
+  height: 1rem;
+  width: 1.2rem;
+  vertical-align: middle
+}
+
+#eth-logo {
+  height: 1rem;
+  width: 1.2rem;
+  vertical-align: middle
+}

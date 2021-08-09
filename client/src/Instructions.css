@@ -1,0 +1,23 @@
+.nav-header {
+  padding-top: 3vh;
+}
+
+.nav-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#sidebar {
+  border-top-right-radius: 3vh;
+  border-bottom-right-radius: 3vh;
+  width: 90%;
+  overflow-y: scroll;
+  height: 92vh;
+  text-align: left;
+  padding-left: 5px;
+}
+
+#sidebar.active {
+  margin-left: -90%;
+}
