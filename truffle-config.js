@@ -10,18 +10,18 @@ module.exports = {
     develop: {
       port: 8545
     },
-    rinkeby_infura: {
+    ropsten_infura: {
       provider: function() {
         return new HDWalletProvider({
-          mnenomic: {
+          mnemonic: {
             phrase: process.env.MNEMONIC
           },
-          providerOrUrl: `https://rinkeby.infura.io/v3/${process.env.API_KEY}`,
+          providerOrUrl: `wss://ropsten.infura.io/ws/v3/${process.env.API_KEY}`,
           addressIndex: process.env.ADDRESS_INDEX,
         })
       },
-      gasPrice:  25000,
-      network_id: 4
+      gasPrice:  250000,
+      network_id: 3
     },
   },
   compilers: {

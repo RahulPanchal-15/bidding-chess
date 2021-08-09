@@ -25,7 +25,6 @@ contract ChessFactory is Ownable {
     uint256 private MIN_BID = 10000000000;
     uint256 private MIN_COIN_BID = 100;
     uint256 private TOKEN_PRICE = 100000002;
-    uint256 private GAS_PRICE = 5;
     
     
     constructor(
@@ -56,7 +55,6 @@ contract ChessFactory is Ownable {
         );
         games[totalGames] = game;
         isActive = true;
-        GAS_PRICE = _gasPrice;
         UBIQUITO.transfer(address(game), INITIAL_GAME_SUPPLY); // Supply ChessFactory with sufficient Ubiquito!!!
     }
 
@@ -78,13 +76,11 @@ contract ChessFactory is Ownable {
     ///@param _minBid Minimum bid a player must make in ETH
     ///@param _minCoinBid Minimum bid a player must make in COIN
     ///@param _tokenPrice Price set for 1 COIN
-    ///@param _gasPrice Current average gas price (considered to reimburse last player for reward computation)
     function setGameDefaults(
         uint16 _maxChances, 
         uint256 _minBid, 
         uint256 _minCoinBid, 
-        uint256 _tokenPrice,
-        uint256 _gasPrice
+        uint256 _tokenPrice
     )
         public 
         onlyOwner 
@@ -93,7 +89,6 @@ contract ChessFactory is Ownable {
         MIN_BID = _minBid;
         MIN_COIN_BID = _minCoinBid;
         TOKEN_PRICE = _tokenPrice;
-        GAS_PRICE = _gasPrice;
     }
 
 
