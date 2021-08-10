@@ -31,7 +31,8 @@ class App extends Component {
       result: 0,
       playerSide: 0,
       minBid: 0,
-      minCoinBid: 0
+      minCoinBid: 0,
+      processing: false,
     };
     this.handleBoardChange = this.handleBoardChange.bind(this);
     this.gameRef = React.createRef();
@@ -204,6 +205,18 @@ class App extends Component {
       let bidButtons = rows.querySelectorAll("#bid-buttons #bid-button");
       for (var counter = 0; counter < bidButtons.length; counter++) {
         bidButtons[counter].className = "btn btn-light";
+        bidButtons[counter].disabled=false;
+      }
+    }
+  };
+
+  deactivateBidButtons = (disable_) => {
+    let buttons = document.querySelectorAll("#row");
+    for(let rows of buttons){
+      let bidButtons = rows.querySelectorAll("#bid-buttons #bid-button");
+      for (var counter = 0; counter < bidButtons.length; counter++) {
+        // bidButtons[counter].className = "btn btn-outline-dark"
+        bidButtons[counter].disabled=disable_;
       }
     }
   };
@@ -223,6 +236,8 @@ class App extends Component {
         const move = this.gameRef.current.state.move;
         console.log(move);
         const side = this.state.turn;
+        this.deactivateBidButtons(true);
+        this.setState({processing:true});
         await this.chessGame.methods
           .performMove(result, side, 0, move, newFEN)
           .send({ value: bid, from: this.accounts[0] })
@@ -232,6 +247,8 @@ class App extends Component {
           })
           .on("error", (err)=> {
             alert("Transaction Failed : ",err.message);
+            this.deactivateBidButtons(false);
+            this.setState({processing:false});
           });
       } else{
         alert("Insufficient Funds");
@@ -251,6 +268,8 @@ class App extends Component {
         const newFEN = this.gameRef.current.state.final_fen;
         const move = this.gameRef.current.state.move;
         const side = this.state.turn;
+        this.deactivateBidButtons();
+        this.setState({processing:true});
         await this.ubi.methods
           .approve(this.currentGameAddress, bid)
           .send({ from: this.accounts[0] })
@@ -264,6 +283,8 @@ class App extends Component {
               })
               .on("error", (err)=> {
                 alert("Transaction Failed : ",err.message);
+                this.deactivateBidButtons(false);
+                this.setState({processing:false});
               });
             } 
           );
@@ -435,6 +456,13 @@ class App extends Component {
                 cbid = {this.cbid}
                 playerSide = {this.state.playerSide}
               />
+              <hr/>
+              {
+                this.state.processing &&
+                <button className="btn" style={{backgroundColor: "dodgerblue", width: "70%", marginTop: "4px", cursor: "default"}}>
+                  Processing Transaction...
+                </button>
+              }
           </div>
         }
 
