@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "efbcee03a61fc97584905c6330d4b048",
+    "revision": "ca9fe7ad51b8bec420ab8b520b0ec616",
     "url": "/bidding-chess/index.html"
   },
   {
-    "revision": "c1c20790e3a6e0daeaa1",
+    "revision": "18b3eae2281eb765bcaa",
     "url": "/bidding-chess/static/css/main.926941cf.chunk.css"
   },
   {
@@ -12,8 +12,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/bidding-chess/static/js/2.70b60da1.chunk.js"
   },
   {
-    "revision": "c1c20790e3a6e0daeaa1",
-    "url": "/bidding-chess/static/js/main.4298c31e.chunk.js"
+    "revision": "18b3eae2281eb765bcaa",
+    "url": "/bidding-chess/static/js/main.9f0a84a1.chunk.js"
   },
   {
     "revision": "f8effcf92420241075a4",
