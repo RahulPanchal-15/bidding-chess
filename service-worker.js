@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/bidding-chess/precache-manifest.f5997022183b9e23efd5095103f8079e.js"
+  "/bidding-chess/precache-manifest.87b84114759523c78a21ba316e24e7aa.js"
 );
 
 self.addEventListener('message', (event) => {
