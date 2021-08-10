@@ -17,6 +17,7 @@ class App extends Component {
       loaded: false,
       isMetaMaskInstalled: false,
       connected: false,
+      rightNetwork : false,
       isActive: false,
       fen: "",
       move: "",
@@ -69,90 +70,105 @@ class App extends Component {
 
 
   loadData = async() => {
-    console.log("HERE");
     this.web3 = new Web3(window.ethereum);
     this.web3.eth.handleRevert = true;
     this.accounts = await window.ethereum.request({ method: 'eth_accounts' });
     this.networkId = await this.web3.eth.net.getId();
-    console.log(this.accounts)
 
-    this.ubi = new this.web3.eth.Contract(
-      Ubiquito.abi,
-      Ubiquito.networks[this.networkId] &&
-        Ubiquito.networks[this.networkId].address
-    );
+    if(Ubiquito.networks[this.networkId]) {
 
-    this.factory = new this.web3.eth.Contract(
-      ChessFactory.abi,
-      ChessFactory.networks[this.networkId] &&
-        ChessFactory.networks[this.networkId].address
-    );
-
-    this.factory_owner = await this.factory.methods.owner().call();
-
-    let ubiBALANCE = await this.ubi.methods.balanceOf(this.accounts[0]).call();
-
-    let gameExists = await this.factory.methods.isActive().call();
-
-    if(gameExists){
-      this.currentGameAddress = await this.factory.methods
-        .getLatestGame()
-        .call();
-      console.log("Current Game Address!", this.currentGameAddress);
-
-      this.chessGame = new this.web3.eth.Contract(
-        ChessGame.abi,
-        this.currentGameAddress
+      this.ubi = new this.web3.eth.Contract(
+        Ubiquito.abi,
+        Ubiquito.networks[this.networkId] &&
+          Ubiquito.networks[this.networkId].address
       );
-
-      let currentFen = await this.chessGame.methods.FEN().call();
-      let currentPlay = await this.chessGame.methods.turn().call();
-      let bids = await this.chessGame.methods.getPlayerBids(this.accounts[0]).call();
-      this.bid = bids[0]
-      this.cbid = bids[1]
-      let minBID = await this.chessGame.methods.MIN_BID().call();
-      this.printMinBid = this.state.minBid.length > 9 ? this.web3.utils.fromWei(this.state.minBid,"ether") : this.minBid;
-      let minCoinBID = await this.chessGame.methods.MIN_COIN_BID().call();
-      this.printMinCoinBid = this.minCoinBid;
-      let playerS = await this.chessGame.methods.getPlayerSide(this.accounts[0]).call();
-      let whitePOOL = await this.chessGame.methods.getPool(1).call();
-      let whiteCOINS = await this.chessGame.methods.getCoins(1).call();
-      let blackPOOL = await this.chessGame.methods.getPool(2).call();
-      let blackCOINS = await this.chessGame.methods.getCoins(2).call();
-      let currentResult = await this.chessGame.methods.GAME_RESULT().call();
-      this.setState(
-        {
-          loaded: true,
-          isMetaMaskInstalled : true,
-          connected: true,
-          fen: currentFen,
-          turn: currentPlay,
-          result: currentResult,
-          playerSide: playerS,
-          whitePool: whitePOOL,
-          blackPool: blackPOOL,
-          whiteCoins: whiteCOINS,
-          blackCoins: blackCOINS,
-          minBid: minBID,
-          minCoinBid: minCoinBID,
-          ubiBalance : ubiBALANCE,
-          isActive: gameExists
-        },
-        this.listenToAccountChange
+  
+      this.factory = new this.web3.eth.Contract(
+        ChessFactory.abi,
+        ChessFactory.networks[this.networkId] &&
+          ChessFactory.networks[this.networkId].address
       );
+  
+      this.factory_owner = await this.factory.methods.owner().call();
+  
+      let ubiBALANCE = await this.ubi.methods.balanceOf(this.accounts[0]).call();
+  
+      let gameExists = await this.factory.methods.isActive().call();
+  
+      if(gameExists){
+        this.currentGameAddress = await this.factory.methods
+          .getLatestGame()
+          .call();
+        console.log("Current Game Address!", this.currentGameAddress);
+  
+        this.chessGame = new this.web3.eth.Contract(
+          ChessGame.abi,
+          this.currentGameAddress
+        );
+  
+        let currentFen = await this.chessGame.methods.FEN().call();
+        let currentPlay = await this.chessGame.methods.turn().call();
+        let bids = await this.chessGame.methods.getPlayerBids(this.accounts[0]).call();
+        this.bid = bids[0]
+        this.cbid = bids[1]
+        let minBID = await this.chessGame.methods.MIN_BID().call();
+        this.printMinBid = this.state.minBid.length > 9 ? this.web3.utils.fromWei(this.state.minBid,"ether") : this.minBid;
+        let minCoinBID = await this.chessGame.methods.MIN_COIN_BID().call();
+        this.printMinCoinBid = this.minCoinBid;
+        let playerS = await this.chessGame.methods.getPlayerSide(this.accounts[0]).call();
+        let whitePOOL = await this.chessGame.methods.getPool(1).call();
+        let whiteCOINS = await this.chessGame.methods.getCoins(1).call();
+        let blackPOOL = await this.chessGame.methods.getPool(2).call();
+        let blackCOINS = await this.chessGame.methods.getCoins(2).call();
+        let currentResult = await this.chessGame.methods.GAME_RESULT().call();
+        this.setState(
+          {
+            loaded: true,
+            isMetaMaskInstalled : true,
+            connected: true,
+            rightNetwork: true,
+            fen: currentFen,
+            turn: currentPlay,
+            result: currentResult,
+            playerSide: playerS,
+            whitePool: whitePOOL,
+            blackPool: blackPOOL,
+            whiteCoins: whiteCOINS,
+            blackCoins: blackCOINS,
+            minBid: minBID,
+            minCoinBid: minCoinBID,
+            ubiBalance : ubiBALANCE,
+            isActive: gameExists
+          },
+          this.listenToAccountChange
+        );
+      } else {
+
+        this.setState(
+          {
+            loaded: true,
+            isMetaMaskInstalled : true,
+            connected: true,
+            rightNetwork: true,
+            ubiBalance : ubiBALANCE,
+            isActive: gameExists
+          },
+          this.listenToAccountChange
+        );
+      }
     } else {
 
       this.setState(
         {
           loaded: true,
           isMetaMaskInstalled : true,
-          connected: true,
-          ubiBalance : ubiBALANCE,
-          isActive: gameExists
+          connected: false,
+          rightNetwork: false
         },
         this.listenToAccountChange
       );
-    }
+
+    } 
   }
 
   listenToAccountChange = () => {
@@ -160,6 +176,7 @@ class App extends Component {
       window.ethereum.on('accountsChanged', (accounts)  => {
         window.location.reload();
       });
+      window.ethereum.on('chainChanged', (_chainId) => window.location.reload());
     }
   }
 
@@ -443,10 +460,10 @@ class App extends Component {
           </div>
         }
 
-        { this.state.isMetaMaskInstalled && !this.state.connected &&
+        { this.state.isMetaMaskInstalled && !this.state.connected && this.state.rightNetwork &&  
           <div className="not-active">
             <div className="box">
-              <strong>Connect to MetaMask and choose Rinkeby Test Network.</strong>
+              <strong>Connect to MetaMask and choose Ropsten Test Network.</strong>
               <hr/>
                 <button type="button" id="install" className="btn btn-primary" onClick={this.loadData}>
                   Connect
@@ -454,6 +471,16 @@ class App extends Component {
             </div>
           </div>
         }
+
+        {
+          this.state.isMetaMaskInstalled && !this.state.rightNetwork &&
+          <div className="not-active">
+            <div className="box">
+              <strong>Open MetaMask wallet and choose Ropsten Test Network.</strong>
+            </div>
+          </div>
+        }
+
 
 
 

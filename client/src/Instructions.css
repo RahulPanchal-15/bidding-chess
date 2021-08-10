@@ -16,6 +16,7 @@
   height: 92vh;
   text-align: left;
   padding-left: 5px;
+  padding-right: 2px;
 }
 
 #sidebar.active {

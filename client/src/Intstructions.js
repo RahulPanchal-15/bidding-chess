@@ -9,7 +9,7 @@ const Instructions = (props) => {
               <img id="close-icon" src="./close.svg" alt="close"/>
         </button>
         <br/> 
-          <h3><p align="center" style={{paddingLeft:"20px"}}>About</p></h3>
+          <h4><p align="center" style={{paddingLeft:"20px"}}>About</p></h4>
           <hr/>
         {/* <p align="left" style={{marginLeft: "8px"}}> */}
           <strong>BIDDING CHESS <span role="img" aria-label="emoji">♟</span></strong> is a crypto-based community chess game with a reward model.
@@ -23,9 +23,8 @@ const Instructions = (props) => {
             <li>Wait for someone else to play (or just tell your friend to <span role="img" aria-label="emoji">🙋🏼‍♀️</span>)</li>
           </ul>
         {/* </p> */}
-        
 
-          <p align="center"><strong>FAQ's <span role="img" aria-label="emoji">🤔</span></strong></p>
+          Connect with us here on <a href="https://t.me/joinchat/8IcM5D1zIPQyNjE1" target="_blank" rel="noopener noreferrer">Telegram</a><span role="img" aria-label="emoji">🤝🏼</span>
           <hr/>
           <div className="accordion" id="accordionExample">
             <div className="accordion-item">
@@ -48,7 +47,19 @@ const Instructions = (props) => {
               </h2>
               <div id="collapseTwo" className="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                 <div className="accordion-body">
-                  You can earn upto 6%-120% returns on your bids! &nbsp;<span role="img" aria-label="emoji">🤑</span>
+                  You can earn upto 6%-20% returns on your bids! We take your percentage contribution in the side and reward you accordingly. If your side wins, you get your Ether back along with additional rewards. Rewards are composed of Ether from the loser pool and UBIQUITO! &nbsp;<span role="img" aria-label="emoji">🤑</span>
+                </div>
+              </div>
+            </div>
+            <div className="accordion-item">
+              <h2 className="accordion-header" id="headingFour">
+                <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                  Where can I get UBIQUITO?
+                </button>
+              </h2>
+              <div id="collapseFour" className="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
+                <div className="accordion-body">
+                  Join the telegram channel and send us your address, we can airdrop you some UBI. You can always bid and earn some yourself. <span role="img" aria-label="emoji">🤑</span>
                 </div>
               </div>
             </div>
