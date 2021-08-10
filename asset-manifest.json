@@ -1,0 +1,21 @@
+{
+  "files": {
+    "main.css": "/bidding-chess/static/css/main.926941cf.chunk.css",
+    "main.js": "/bidding-chess/static/js/main.4298c31e.chunk.js",
+    "main.js.map": "/bidding-chess/static/js/main.4298c31e.chunk.js.map",
+    "runtime-main.js": "/bidding-chess/static/js/runtime-main.3076a92e.js",
+    "runtime-main.js.map": "/bidding-chess/static/js/runtime-main.3076a92e.js.map",
+    "static/js/2.70b60da1.chunk.js": "/bidding-chess/static/js/2.70b60da1.chunk.js",
+    "static/js/2.70b60da1.chunk.js.map": "/bidding-chess/static/js/2.70b60da1.chunk.js.map",
+    "index.html": "/bidding-chess/index.html",
+    "precache-manifest.b35372f156f9a593afb012fbb61c45c1.js": "/bidding-chess/precache-manifest.b35372f156f9a593afb012fbb61c45c1.js",
+    "service-worker.js": "/bidding-chess/service-worker.js",
+    "static/css/main.926941cf.chunk.css.map": "/bidding-chess/static/css/main.926941cf.chunk.css.map"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.3076a92e.js",
+    "static/js/2.70b60da1.chunk.js",
+    "static/css/main.926941cf.chunk.css",
+    "static/js/main.4298c31e.chunk.js"
+  ]
+}
