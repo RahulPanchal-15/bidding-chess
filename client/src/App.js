@@ -7,8 +7,9 @@ import Ubiquito from "./contracts/Ubiquito.json";
 import ChessFactory from "./contracts/ChessFactory.json";
 import ChessGame from "./contracts/ChessGame.json";
 import MetaMaskOnboarding from '@metamask/onboarding';
-
 import "./App.css";
+
+const BN = require('bn.js');
 
 class App extends Component {
   constructor() {
@@ -70,7 +71,8 @@ class App extends Component {
   }
 
 
-  loadData = async() => {
+  loadData = async () => {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
     this.web3 = new Web3(window.ethereum);
     this.web3.eth.handleRevert = true;
     this.accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -230,7 +232,7 @@ class App extends Component {
     if (this.gameRef.current.state.hasMoved) {
       const bid = event.currentTarget.value;
       const balance = await this.web3.eth.getBalance(this.accounts[0]);
-      if(bid<=balance){
+      if(new BN(bid).cmp(new BN(balance)) === -1){
         const result = this.gameRef.current.state.result;
         const newFEN = this.gameRef.current.state.final_fen;
         const move = this.gameRef.current.state.move;
@@ -263,16 +265,22 @@ class App extends Component {
   handleSubmitBidCoin = async (event) => {
     if (this.gameRef.current.state.hasMoved) {
       const bid = event.currentTarget.value;
-      if(bid<=this.state.ubiBalance){
+      const ubiBalance = this.state.ubiBalance;
+      if(parseInt(bid)<=parseInt(ubiBalance)){
         const result = this.gameRef.current.state.result;
         const newFEN = this.gameRef.current.state.final_fen;
         const move = this.gameRef.current.state.move;
         const side = this.state.turn;
-        this.deactivateBidButtons();
+        this.deactivateBidButtons(true);
         this.setState({processing:true});
         await this.ubi.methods
           .approve(this.currentGameAddress, bid)
           .send({ from: this.accounts[0] })
+          .on("error", (err)=> {
+            alert("Transaction Failed : ",err.message);
+            this.deactivateBidButtons(false);
+            this.setState({processing:false});
+          })
           .then(async () => {
             await this.chessGame.methods
               .performMove(result, side, bid, move, newFEN)
@@ -488,20 +496,9 @@ class App extends Component {
           </div>
         }
 
-        { this.state.isMetaMaskInstalled && !this.state.connected && this.state.rightNetwork &&  
-          <div className="not-active">
-            <div className="box">
-              <strong>Connect to MetaMask and choose Ropsten Test Network.</strong>
-              <hr/>
-                <button type="button" id="install" className="btn btn-primary" onClick={this.loadData}>
-                  Connect
-                </button>
-            </div>
-          </div>
-        }
 
         {
-          this.state.isMetaMaskInstalled && !this.state.rightNetwork &&
+          this.state.isMetaMaskInstalled && !this.state.rightNetwork && this.state.connected &&
           <div className="not-active">
             <div className="box">
               <strong>Open MetaMask wallet and choose Ropsten Test Network.</strong>
@@ -510,7 +507,17 @@ class App extends Component {
         }
 
 
-
+        { this.state.isMetaMaskInstalled && !this.state.connected && !this.state.rightNetwork &&
+          <div className="not-active">
+            <div className="box">
+              <strong>Connect to MetaMask and choose Ropsten Test Network.</strong>
+              <hr/>
+                <button type="button" id="install" className="btn btn-primary" onClick={this.loadData}>
+                  Connect
+            </button>
+            </div>
+          </div>
+        }
 
 
       </div>
