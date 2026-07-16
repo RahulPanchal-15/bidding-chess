@@ -1,0 +1,27 @@
+{
+  "name": "Bidding Chess",
+  "short_name": "Bidding Chess",
+  "description": "Shared on-chain chess. Bid ETH or UBI to lock moves, fight for the pool on Sepolia.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#F3EEE6",
+  "background_color": "#F3EEE6",
+  "lang": "en",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
