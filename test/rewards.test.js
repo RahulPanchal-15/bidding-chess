@@ -1,188 +1,45 @@
-const Coin = artifacts.require('Ubiquito');
-const Factory = artifacts.require('ChessFactory');
-const Game = artifacts.require('ChessGame');
-const truffleAssert = require('truffle-assertions');
-const BN = require('bn.js');
+const { expect } = require("chai");
+const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const { deployGameStack } = require("./helpers/deploy");
 
-contract("ChessFactory", (accounts) => {
-
-  const [Owner, W1, B1, W2, B2, W3, B3, W4, B4, W5] = accounts;
-  let min = 0;
-  let minCoin = 0;
-
-  async function getBalances() {
-    const balances = await accounts.map(async(element) => {
-      return (await web3.eth.getBalance(element));
-    });
-    return await Promise.all(balances);
+describe("ChessFactory rewards flow", function () {
+  async function fixture() {
+    const stack = await deployGameStack();
+    const min = await stack.game.MIN_BID();
+    const minCoin = await stack.game.MIN_COIN_BID();
+    const [, W1, B1, W2] = stack.signers;
+    return { ...stack, min, minCoin, W1, B1, W2 };
   }
 
-  function compareBalances(beforeBalance,afterBalance) {
-    let differences = [];
-    for(i = 0; i < beforeBalance.length; i++) { 
-      differences.push((new BN(afterBalance[i]).sub(new BN(beforeBalance[i]))).toString());
-    }
-    return differences;
-  }
+  it("supports UBI bids and ETH bids", async function () {
+    const { ubiquito, factory, game, gameAddress, owner, min, minCoin, W1, B1, W2 } =
+      await loadFixture(fixture);
 
-  
-  it(" initialises min bids ", async() => {
-    let factory = await Factory.deployed();
-    let gameAddress = await factory.getLatestGame(); 
-    let game = await Game.at(gameAddress);
-    min = await game.MIN_BID();
-    minCoin = await game.MIN_COIN_BID();
-  })
+    await (await ubiquito.connect(owner).transfer(W1.address, minCoin)).wait();
+    await (await ubiquito.connect(owner).transfer(B1.address, minCoin * 5n)).wait();
 
-  // it(" send minCoin Ubiquito to ChessFactory", async() => {
-  //   let coin = await Coin.deployed();
-  //   await truffleAssert.passes(
-  //     coin.transfer(Factory.address,minCoin,{from: Owner})
-  //   );
-  //   let balance = await coin.balanceOf(Factory.address);
-  //   console.log("ChessFactory Ubi balance : ",balance.toString());
-  // });
+    expect(await ubiquito.balanceOf(W1.address)).to.equal(minCoin);
 
-  it(" send minCoin ubiquito to W1", async() => {
-    let coin = await Coin.deployed();
-    await truffleAssert.passes(
-      coin.transfer(W1,minCoin,{from:Owner})
-    );
-    let temp = await coin.balanceOf(W1);
-    console.log(temp.toString());
+    await (await ubiquito.connect(W1).approve(gameAddress, minCoin)).wait();
+    await expect(
+      game.connect(W1).performMove(0, 1, minCoin, "e4", "this will be the fen string")
+    ).to.not.be.reverted;
+
+    await (await ubiquito.connect(B1).approve(gameAddress, minCoin * 5n)).wait();
+    await expect(
+      game
+        .connect(B1)
+        .performMove(0, 2, minCoin * 5n, "e5", "this will be the fen string")
+    ).to.not.be.reverted;
+
+    // Result.WinLoss (1) ends the game and pays out rewards (same as legacy Truffle test).
+    await expect(
+      game
+        .connect(W2)
+        .performMove(1, 1, 0, "c4", "this will be the fen string", { value: min })
+    ).to.not.be.reverted;
+
+    expect(await game.REWARDED()).to.equal(true);
+    expect(await factory.getLatestGame()).to.equal(gameAddress);
   });
-
-  it(" send minCoin*5 ubiquito to B1", async() => {
-    let coin = await Coin.deployed();
-    await truffleAssert.passes(
-      coin.transfer(B1,minCoin*5,{from:Owner})
-    )
-  });
-
-  // it("create game with 4 max moves and minimum eth bid 1000, min coin bid as 100, rate as", async () => {
-  //   let factory = await Factory.deployed();
-  //   await truffleAssert.passes(
-  //     factory.createGame(4, 1000, 50, 100, { from: Owner }),
-  //     "Could not create a game!"
-  //   );
-    
-    
-  // });
-
-    it(" W1 approves ChessGame of minCoin ubi", async() => {
-      let factory = await Factory.deployed();
-      let gameAddress = await factory.getLatestGame();
-      let coin = await Coin.deployed();
-      truffleAssert.passes(
-        coin.approve(gameAddress,minCoin,{from:W1})
-      )
-    });
-
-  
-    it(" W1 moves e4 - Bids minCoin ubi ", async() => {
-      let factory = await Factory.deployed();
-      let gameAddress = await factory.getLatestGame(); 
-      let game = await Game.at(gameAddress);
-      let coin = await Coin.deployed();
-      await truffleAssert.passes(
-        game.performMove( 0, 1,minCoin,"e4","this will be the fen string",{from: W1}) // W1 - 100ubi
-      );
-      let w1_prevBalance = await web3.eth.getBalance(W1);
-      console.log("W1 after move balance(eth) : ",w1_prevBalance.toString());
-      let balance = await coin.balanceOf(W1);
-      console.log("W1 after move balance(ubi) : ",balance.toString());
-    }); 
-    
-    it(" B1 approves ChessGame of minCoin*5 ubi", async() => {
-      let factory = await Factory.deployed();
-      let gameAddress = await factory.getLatestGame();
-      let coin = await Coin.deployed();
-      truffleAssert.passes(
-        coin.approve(gameAddress,minCoin*5,{from:B1})
-      )
-    });
-
-    it(" B1 moves e5 - Bids minCoin ubi ", async() => {
-      let factory = await Factory.deployed();
-      let coin = await Coin.deployed();
-      let gameAddress = await factory.getLatestGame(); 
-      let game = await Game.at(gameAddress);
-      let x = null;
-      let b1_prevBalance = await web3.eth.getBalance(B1);
-      console.log("B1 before move balance(eth) : ",b1_prevBalance.toString());
-      await truffleAssert.passes(
-        x = game.performMove(0,2,minCoin*5,"e5","this will be the fen string",{from: B1})
-      );
-      console.log(x);
-      b1_prevBalance = await web3.eth.getBalance(B1);
-      console.log("B1 after move balance(eth) : ",b1_prevBalance.toString());
-      let balance = await coin.balanceOf(B1);
-      console.log("B1 after move balance(ubi) : ",balance.toString());
-  });
-
-  it(" W2 moves c4 - Bids (min)wei ", async() => {
-    let factory = await Factory.deployed();
-    let coin = await Coin.deployed();
-    let gameAddress = await factory.getLatestGame(); 
-    let game = await Game.at(gameAddress);
-    let x = null;
-    const beforeBalance = await getBalances();
-    await truffleAssert.passes(
-      x = game.performMove(1,1,0,"c4","this will be the fen string",{from: W2, value: min})
-    );
-    console.log(x);
-    let w2_prevBalance = await web3.eth.getBalance(W2);
-    console.log("W2 after move balance(eth) : ",w2_prevBalance.toString());
-    let balance = await coin.balanceOf(W2);
-    console.log("W2 after move balance(ubi) : ",balance.toString());
-
-    const afterBalance = await getBalances();
-    const difference = compareBalances(beforeBalance,afterBalance);
-    
-    console.log("W2 before balance : ",beforeBalance[3]);
-    console.log("W2 after balance  : ",afterBalance[3]);
-    
-    
-    console.log("Difference in Balances :\n", difference);
-  }); 
-
-  it(" Factory sets reward for the game", async() => {
-    let factory = await Factory.deployed();
-
-    // await truffleAssert.passes(
-    //   factory.setRewardFor(1,{from: Owner})
-    // )
-
-    // await truffleAssert.passes(
-    //   factory.rewardWinners(1,{from:Owner}),
-    //   "Error while rewarding!"
-    // );
-
-    let coin = await Coin.deployed();
-    let gameAddress = await factory.getLatestGame(); 
-    let balance = await coin.balanceOf(gameAddress);
-    console.log("ChessGame Ubi balance : ",balance.toString());
-    balance = await coin.balanceOf(Factory.address);
-    console.log("ChessFactory Ubi balance : ",balance.toString());
-    console.log("ChessFactory ETH balance : ",await web3.eth.getBalance(Factory.address));
-
-    let w1_afterBalance = await web3.eth.getBalance(W1);
-    console.log("W1 final balance(eth) : ",w1_afterBalance.toString());
-    let balanceW1 = await coin.balanceOf(W1);
-    console.log("W1 final balance(ubi) : ",balanceW1.toString());
-
-    let b1_afterBalance = await web3.eth.getBalance(B1);
-    console.log("B1 final balance(eth) : ",b1_afterBalance.toString());
-    let balanceB1 = await coin.balanceOf(B1);
-    console.log("B1 final balance(ubi) : ",balanceB1.toString());
-
-    let w2_afterBalance = await web3.eth.getBalance(W2);
-    console.log("W2 final balance(eth) : ",w2_afterBalance.toString());
-    let balanceW2 = await coin.balanceOf(W2);
-    console.log("W2 final balance(ubi) : ",balanceW2.toString());
-
-  });
-
-
-}
-);
+});

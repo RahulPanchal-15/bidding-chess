@@ -14364,10 +14364,22 @@
       "links": {},
       "address": "0x721f74e8946fd5E5f0876bE9a7232a07E42e236d",
       "transactionHash": "0x84598980988f256f085a8fdb3ba52cc5dff9b99d30d2db8caac3f4c83b01dcec"
+    },
+    "31337": {
+      "events": {},
+      "links": {},
+      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "transactionHash": "0xd2bc201ace5677a3ccb49b7d4dfc5372e4d602033962a296c4fc8a4ecb5b9168"
+    },
+    "11155111": {
+      "events": {},
+      "links": {},
+      "address": "0xe72DFFe6Db67c8f19d2ADaE7bBede3626C172301",
+      "transactionHash": "0xb509cc9f5310b43f9e70908e658345a10efb78313806b08429752aa25e7daf72"
     }
   },
   "schemaVersion": "3.4.1",
-  "updatedAt": "2021-08-09T20:03:45.645Z",
+  "updatedAt": "2026-07-16T11:38:25.661Z",
   "networkType": "ethereum",
   "devdoc": {
     "author": "Rahul Panchal",

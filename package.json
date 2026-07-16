@@ -1,11 +1,17 @@
 {
+  "scripts": {
+    "compile": "hardhat compile",
+    "node": "hardhat node",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia"
+  },
   "dependencies": {
-    "@metamask/onboarding": "^1.0.1",
     "@openzeppelin/contracts": "^4.2.0",
-    "@truffle/hdwallet-provider": "^1.4.3",
-    "bn.js": "^5.2.0",
-    "dotenv": "^10.0.0",
-    "ganache-cli": "^6.12.2",
-    "truffle-assertions": "^0.9.2"
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.28.6"
   }
 }

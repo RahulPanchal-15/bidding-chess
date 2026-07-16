@@ -1,2 +1,4 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
+Allow: /
+
+Sitemap: https://rahulpanchal-15.github.io/bidding-chess/sitemap.xml

@@ -10715,10 +10715,22 @@
       "links": {},
       "address": "0xd19d6Bcc0b95e115bffc9b9EB4F24768BF7cD3C7",
       "transactionHash": "0xfad35b90eb19491d92924e9909e186942ddbdb6e7ee1dcd91c4afc0f730e3ebf"
+    },
+    "31337": {
+      "events": {},
+      "links": {},
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "transactionHash": "0xcfe8f2cafdf7b07fb555c6ea2c7ce747ba2b563f3a7dd9f471ba04f8ca614bb7"
+    },
+    "11155111": {
+      "events": {},
+      "links": {},
+      "address": "0xEccb3e879b5Ecd5F795366B3001E4803050C91aE",
+      "transactionHash": ""
     }
   },
   "schemaVersion": "3.4.1",
-  "updatedAt": "2021-08-09T20:03:45.592Z",
+  "updatedAt": "2026-07-16T11:38:25.651Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
