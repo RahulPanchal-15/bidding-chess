@@ -54,7 +54,7 @@ export const FAQ_ITEMS = [
   },
 ];
 
-export const TELEGRAM_URL = 'https://t.me/joinchat/8IcM5D1zIPQyNjE1';
+export const TELEGRAM_URL = 'https://t.me/+tKbsEK-hNsRmODQ1';
 
 export const TELEGRAM_CTA_LABEL = 'Get UBI on Telegram';
 
