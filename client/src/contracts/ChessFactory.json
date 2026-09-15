@@ -14374,12 +14374,12 @@
     "11155111": {
       "events": {},
       "links": {},
-      "address": "0xe72DFFe6Db67c8f19d2ADaE7bBede3626C172301",
-      "transactionHash": "0xb509cc9f5310b43f9e70908e658345a10efb78313806b08429752aa25e7daf72"
+      "address": "0xD3570F455B0581493e6F7861dbf15Fb2A0d02EF5",
+      "transactionHash": "0x3a4fdde44a7611dc50b121cb4edbb0987314bdeda051ab85da575d860fb92a75"
     }
   },
   "schemaVersion": "3.4.1",
-  "updatedAt": "2026-07-16T11:38:25.661Z",
+  "updatedAt": "2026-09-15T09:48:38.997Z",
   "networkType": "ethereum",
   "devdoc": {
     "author": "Rahul Panchal",

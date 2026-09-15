@@ -1,11 +1,12 @@
 /**
- * Turn MetaMask / web3 / contract errors into short UI-facing messages.
+ * Turn MetaMask / ethers / contract errors into short UI-facing messages.
  */
 export function formatWalletError(error, fallback = 'Transaction failed.') {
   if (!error) return fallback;
 
   const code = error.code ?? error.error?.code;
   const raw = [
+    error.shortMessage,
     error.message,
     error.error?.message,
     error.reason,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import BN from 'bn.js';
+import { Contract } from 'ethers';
 import ChessFactory from '../contracts/ChessFactory.json';
 import ChessGame from '../contracts/ChessGame.json';
 import Ubiquito from '../contracts/Ubiquito.json';
@@ -8,8 +8,14 @@ import { createReadContext } from '../web3/readProvider';
 
 const POLL_INTERVAL_MS = 8000;
 
+const asString = (value) => {
+  if (value === undefined || value === null) return '0';
+  if (typeof value === 'bigint') return value.toString();
+  return String(value);
+};
+
 export function useChessGame({
-  getWalletWeb3,
+  getWalletProvider,
   getUbi,
   account,
   rightNetwork,
@@ -35,7 +41,7 @@ export function useChessGame({
   const [processing, setProcessing] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
 
-  const readWeb3Ref = useRef(null);
+  const readProviderRef = useRef(null);
   const readNetworkIdRef = useRef(null);
   const currentGameAddressRef = useRef(null);
   const boardRef = useRef(null);
@@ -53,20 +59,20 @@ export function useChessGame({
     }
 
     setFen(payload.fen);
-    setTurn(String(payload.turn));
-    setResult(String(payload.result));
-    setWhitePool(payload.whitePool);
-    setBlackPool(payload.blackPool);
-    setWhiteCoins(payload.whiteCoins);
-    setBlackCoins(payload.blackCoins);
-    setMinBid(payload.minBid);
-    setMinCoinBid(payload.minCoinBid);
+    setTurn(asString(payload.turn));
+    setResult(asString(payload.result));
+    setWhitePool(asString(payload.whitePool));
+    setBlackPool(asString(payload.blackPool));
+    setWhiteCoins(asString(payload.whiteCoins));
+    setBlackCoins(asString(payload.blackCoins));
+    setMinBid(asString(payload.minBid));
+    setMinCoinBid(asString(payload.minCoinBid));
   }, []);
 
   const applyPlayerState = useCallback((payload) => {
-    setPlayerSide(String(payload.playerSide ?? '0'));
-    setPlayerBid(payload.playerBid ?? '0');
-    setPlayerCoinBid(payload.playerCoinBid ?? '0');
+    setPlayerSide(asString(payload.playerSide ?? '0'));
+    setPlayerBid(asString(payload.playerBid ?? '0'));
+    setPlayerCoinBid(asString(payload.playerCoinBid ?? '0'));
   }, []);
 
   const clearPlayerState = useCallback(() => {
@@ -76,28 +82,29 @@ export function useChessGame({
   }, []);
 
   const fetchPublicGame = useCallback(
-    async (web3, networkId) => {
-      if (!web3 || !ChessFactory.networks[networkId]) {
+    async (provider, networkId) => {
+      if (!provider || !ChessFactory.networks[networkId]) {
         setIsActive(false);
         return;
       }
 
-      const factory = new web3.eth.Contract(
+      const factory = new Contract(
+        ChessFactory.networks[networkId].address,
         ChessFactory.abi,
-        ChessFactory.networks[networkId].address
+        provider
       );
 
-      const gameExists = await factory.methods.isActive().call();
+      const gameExists = await factory.isActive();
       if (!gameExists) {
         currentGameAddressRef.current = null;
         applyPublicState({ isActive: false });
         return;
       }
 
-      const gameAddress = await factory.methods.getLatestGame().call();
+      const gameAddress = await factory.getLatestGame();
       currentGameAddressRef.current = gameAddress;
 
-      const chessGame = new web3.eth.Contract(ChessGame.abi, gameAddress);
+      const chessGame = new Contract(gameAddress, ChessGame.abi, provider);
 
       const [
         currentFen,
@@ -110,15 +117,15 @@ export function useChessGame({
         blackCOINS,
         currentResult,
       ] = await Promise.all([
-        chessGame.methods.FEN().call(),
-        chessGame.methods.turn().call(),
-        chessGame.methods.MIN_BID().call(),
-        chessGame.methods.MIN_COIN_BID().call(),
-        chessGame.methods.getPool(1).call(),
-        chessGame.methods.getCoins(1).call(),
-        chessGame.methods.getPool(2).call(),
-        chessGame.methods.getCoins(2).call(),
-        chessGame.methods.GAME_RESULT().call(),
+        chessGame.FEN(),
+        chessGame.turn(),
+        chessGame.MIN_BID(),
+        chessGame.MIN_COIN_BID(),
+        chessGame.getPool(1),
+        chessGame.getCoins(1),
+        chessGame.getPool(2),
+        chessGame.getCoins(2),
+        chessGame.GAME_RESULT(),
       ]);
 
       applyPublicState({
@@ -138,8 +145,8 @@ export function useChessGame({
   );
 
   const fetchPlayerData = useCallback(
-    async (web3, networkId, activeAccount) => {
-      if (!web3 || !activeAccount || !ChessFactory.networks[networkId]) {
+    async (provider, networkId, activeAccount) => {
+      if (!provider || !activeAccount || !ChessFactory.networks[networkId]) {
         clearPlayerState();
         return;
       }
@@ -150,20 +157,20 @@ export function useChessGame({
         return;
       }
 
-      const chessGame = new web3.eth.Contract(ChessGame.abi, gameAddress);
+      const chessGame = new Contract(gameAddress, ChessGame.abi, provider);
       const ubiAddress = Ubiquito.networks[networkId]?.address;
       const ubi = ubiAddress
-        ? new web3.eth.Contract(Ubiquito.abi, ubiAddress)
+        ? new Contract(ubiAddress, Ubiquito.abi, provider)
         : null;
 
       const [bids, playerS] = await Promise.all([
-        chessGame.methods.getPlayerBids(activeAccount).call(),
-        chessGame.methods.getPlayerSide(activeAccount).call(),
+        chessGame.getPlayerBids(activeAccount),
+        chessGame.getPlayerSide(activeAccount),
       ]);
 
       if (ubi && setUbiBalance) {
-        const balance = await ubi.methods.balanceOf(activeAccount).call();
-        setUbiBalance(balance);
+        const balance = await ubi.balanceOf(activeAccount);
+        setUbiBalance(balance.toString());
       }
 
       applyPlayerState({
@@ -176,16 +183,17 @@ export function useChessGame({
   );
 
   const refreshAll = useCallback(async () => {
-    const readWeb3 = readWeb3Ref.current;
+    const readProvider = readProviderRef.current;
     const readNetworkId = readNetworkIdRef.current;
-    if (!readWeb3 || !readNetworkId) return;
+    if (!readProvider || !readNetworkId) return;
 
-    await fetchPublicGame(readWeb3, readNetworkId);
+    await fetchPublicGame(readProvider, readNetworkId);
 
     if (connected && rightNetwork && account) {
-      const walletWeb3 = getWalletWeb3?.() || readWeb3;
-      const walletNetworkId = await walletWeb3.eth.net.getId();
-      await fetchPlayerData(walletWeb3, walletNetworkId, account);
+      const walletProvider = getWalletProvider?.() || readProvider;
+      const { chainId } = await walletProvider.getNetwork();
+      const walletNetworkId = Number(chainId);
+      await fetchPlayerData(walletProvider, walletNetworkId, account);
     } else {
       clearPlayerState();
       setUbiBalance?.('0');
@@ -196,7 +204,7 @@ export function useChessGame({
     connected,
     fetchPlayerData,
     fetchPublicGame,
-    getWalletWeb3,
+    getWalletProvider,
     rightNetwork,
     setUbiBalance,
   ]);
@@ -217,10 +225,10 @@ export function useChessGame({
           return;
         }
 
-        readWeb3Ref.current = ctx.web3;
+        readProviderRef.current = ctx.provider;
         readNetworkIdRef.current = ctx.networkId;
         setReadError(null);
-        await fetchPublicGame(ctx.web3, ctx.networkId);
+        await fetchPublicGame(ctx.provider, ctx.networkId);
       } catch (error) {
         console.error(error);
         if (!cancelled) {
@@ -240,28 +248,29 @@ export function useChessGame({
   useEffect(() => {
     if (!connected || !rightNetwork) return;
 
-    const walletWeb3 = getWalletWeb3?.();
-    if (!walletWeb3) return;
+    const walletProvider = getWalletProvider?.();
+    if (!walletProvider) return;
 
     (async () => {
       try {
-        const networkId = await walletWeb3.eth.net.getId();
+        const { chainId } = await walletProvider.getNetwork();
+        const networkId = Number(chainId);
         if (!ChessFactory.networks[networkId]) return;
-        readWeb3Ref.current = walletWeb3;
+        readProviderRef.current = walletProvider;
         readNetworkIdRef.current = networkId;
         setReadError(null);
-        await fetchPublicGame(walletWeb3, networkId);
+        await fetchPublicGame(walletProvider, networkId);
         if (account) {
-          await fetchPlayerData(walletWeb3, networkId, account);
+          await fetchPlayerData(walletProvider, networkId, account);
         }
       } catch (error) {
         console.error(error);
       }
     })();
-  }, [account, connected, fetchPlayerData, fetchPublicGame, getWalletWeb3, rightNetwork]);
+  }, [account, connected, fetchPlayerData, fetchPublicGame, getWalletProvider, rightNetwork]);
 
   useEffect(() => {
-    if (!gameLoaded || !readWeb3Ref.current) return undefined;
+    if (!gameLoaded || !readProviderRef.current) return undefined;
 
     refreshAll().catch(console.error);
 
@@ -288,16 +297,17 @@ export function useChessGame({
     resetMoveState();
   }, [processing, resetMoveState]);
 
-  const getWriteContext = useCallback(() => {
-    const walletWeb3 = getWalletWeb3?.();
-    if (!walletWeb3 || !account) return null;
+  const getWriteContext = useCallback(async () => {
+    const walletProvider = getWalletProvider?.();
+    if (!walletProvider || !account) return null;
 
     const gameAddress = currentGameAddressRef.current;
     if (!gameAddress) return null;
 
-    const chessGame = new walletWeb3.eth.Contract(ChessGame.abi, gameAddress);
-    return { web3: walletWeb3, chessGame, gameAddress };
-  }, [account, getWalletWeb3]);
+    const signer = await walletProvider.getSigner();
+    const chessGame = new Contract(gameAddress, ChessGame.abi, signer);
+    return { provider: walletProvider, signer, chessGame, gameAddress };
+  }, [account, getWalletProvider]);
 
   const submitBidEther = useCallback(
     async (bid) => {
@@ -307,14 +317,14 @@ export function useChessGame({
         return;
       }
 
-      const write = getWriteContext();
+      const write = await getWriteContext();
       if (!write) {
         showToast({ type: 'error', message: 'Connect your wallet to play.' });
         return;
       }
 
-      const balance = await write.web3.eth.getBalance(account);
-      if (new BN(String(bid)).cmp(new BN(String(balance))) >= 0) {
+      const balance = await write.provider.getBalance(account);
+      if (BigInt(String(bid)) >= balance) {
         showToast({ type: 'error', message: 'Insufficient ETH balance.' });
         return;
       }
@@ -323,9 +333,15 @@ export function useChessGame({
       showToast({ type: 'pending', message: 'Confirm the transaction in MetaMask.' });
 
       try {
-        await write.chessGame.methods
-          .performMove(boardState.result, turn, 0, boardState.move, boardState.finalFen)
-          .send({ value: bid, from: account });
+        const tx = await write.chessGame.performMove(
+          boardState.result,
+          turn,
+          0,
+          boardState.move,
+          boardState.finalFen,
+          { value: bid }
+        );
+        await tx.wait();
 
         showToast({
           type: 'success',
@@ -353,15 +369,15 @@ export function useChessGame({
         return;
       }
 
-      const write = getWriteContext();
-      const ubi = getUbi?.();
-      if (!write || !ubi) {
+      const write = await getWriteContext();
+      const ubiRead = getUbi?.();
+      if (!write || !ubiRead) {
         showToast({ type: 'error', message: 'Connect your wallet to play.' });
         return;
       }
 
-      const balance = await ubi.methods.balanceOf(account).call();
-      if (parseInt(bid, 10) > parseInt(balance, 10)) {
+      const balance = await ubiRead.balanceOf(account);
+      if (BigInt(String(bid)) > BigInt(balance.toString())) {
         showToast({
           type: 'error',
           message: 'Insufficient UBI. Get UBI from the header, or bid with ETH.',
@@ -373,11 +389,18 @@ export function useChessGame({
       showToast({ type: 'pending', message: 'Approve UBI, then confirm the move in MetaMask.' });
 
       try {
-        await ubi.methods.approve(write.gameAddress, bid).send({ from: account });
+        const ubi = ubiRead.connect(write.signer);
+        const approveTx = await ubi.approve(write.gameAddress, bid);
+        await approveTx.wait();
 
-        await write.chessGame.methods
-          .performMove(boardState.result, turn, bid, boardState.move, boardState.finalFen)
-          .send({ from: account });
+        const moveTx = await write.chessGame.performMove(
+          boardState.result,
+          turn,
+          bid,
+          boardState.move,
+          boardState.finalFen
+        );
+        await moveTx.wait();
 
         showToast({
           type: 'success',

@@ -10725,12 +10725,12 @@
     "11155111": {
       "events": {},
       "links": {},
-      "address": "0xEccb3e879b5Ecd5F795366B3001E4803050C91aE",
-      "transactionHash": ""
+      "address": "0xe37517f4EbE94AeF1Ad021F9cDCaFfD4d96F601b",
+      "transactionHash": "0xe299ea862777425badc247616951c298c1f100e3969672bfff6f5abd0cf14cc8"
     }
   },
   "schemaVersion": "3.4.1",
-  "updatedAt": "2026-07-16T11:38:25.651Z",
+  "updatedAt": "2026-09-15T09:48:38.990Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

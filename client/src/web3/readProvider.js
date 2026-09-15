@@ -1,4 +1,4 @@
-import Web3 from 'web3';
+import { BrowserProvider, JsonRpcProvider } from 'ethers';
 import ChessFactory from '../contracts/ChessFactory.json';
 import {
   DEPRECATED_NETWORK_IDS,
@@ -22,24 +22,29 @@ function preferredNetworkId() {
   return Number(remote || DEPLOYED_NETWORK_IDS[0]);
 }
 
-async function tryProvider(providerUrlOrEthereum) {
-  const web3 = new Web3(providerUrlOrEthereum);
-  const networkId = await web3.eth.net.getId();
+async function networkIdFromProvider(provider) {
+  const { chainId } = await provider.getNetwork();
+  return Number(chainId);
+}
+
+async function tryBrowserProvider(ethereum) {
+  const provider = new BrowserProvider(ethereum);
+  const networkId = await networkIdFromProvider(provider);
   if (!ChessFactory.networks[networkId]) {
     return null;
   }
-  return { web3, networkId };
+  return { provider, networkId };
 }
 
 async function tryHttpRpc(rpcUrl, networkIdHint) {
   try {
-    const web3 = new Web3(rpcUrl);
-    const networkId = networkIdHint || (await web3.eth.net.getId());
+    const provider = new JsonRpcProvider(rpcUrl, networkIdHint);
+    const networkId = networkIdHint || (await networkIdFromProvider(provider));
     if (!ChessFactory.networks[networkId]) {
       console.warn('Read RPC network does not match deployed contracts.', networkId);
       return null;
     }
-    return { web3, networkId };
+    return { provider, networkId };
   } catch (error) {
     console.error('Failed to connect to read RPC', rpcUrl, error);
     return null;
@@ -47,7 +52,7 @@ async function tryHttpRpc(rpcUrl, networkIdHint) {
 }
 
 /**
- * Read-only Web3 for spectating. Never prompts MetaMask.
+ * Read-only provider for spectating. Never prompts MetaMask.
  * Priority:
  *   VITE_READ_RPC_URL (optional override)
  *   → localhost Hardhat/Ganache (if local artifacts)
@@ -65,7 +70,7 @@ export async function createReadContext() {
   const hasLocalDeploy = [...LOCAL_NETWORK_IDS].some((id) => ChessFactory.networks[id]);
   if (hasLocalDeploy) {
     try {
-      const local = await tryProvider('http://127.0.0.1:8545');
+      const local = await tryHttpRpc('http://127.0.0.1:8545');
       if (local) return local;
     } catch {
       // Local Hardhat/Ganache not running — continue.
@@ -80,7 +85,7 @@ export async function createReadContext() {
 
   if (typeof window !== 'undefined' && window.ethereum) {
     try {
-      const injected = await tryProvider(window.ethereum);
+      const injected = await tryBrowserProvider(window.ethereum);
       if (injected) return injected;
     } catch (error) {
       console.error('Silent MetaMask read failed', error);

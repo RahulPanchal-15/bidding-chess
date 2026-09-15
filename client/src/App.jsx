@@ -29,13 +29,13 @@ export default function App() {
     switchToSepolia,
     watchUbiToken,
     installMetamask,
-    getWeb3,
+    getProvider,
     getUbi,
     setUbiBalance,
   } = wallet;
 
   const game = useChessGame({
-    getWalletWeb3: getWeb3,
+    getWalletProvider: getProvider,
     getUbi,
     account,
     rightNetwork,

@@ -19,9 +19,9 @@ https://rahulpanchal-15.github.io/bidding-chess
 
 | Contract | Address |
 |----------|---------|
-| Ubiquito (UBI) | [`0xEccb3e879b5Ecd5F795366B3001E4803050C91aE`](https://sepolia.etherscan.io/address/0xEccb3e879b5Ecd5F795366B3001E4803050C91aE) |
-| ChessFactory | [`0xe72DFFe6Db67c8f19d2ADaE7bBede3626C172301`](https://sepolia.etherscan.io/address/0xe72DFFe6Db67c8f19d2ADaE7bBede3626C172301) |
-| Latest game (at deploy) | [`0x8ce4EC4E2d29CeF4AA62F56ad12d15F6E445C54d`](https://sepolia.etherscan.io/address/0x8ce4EC4E2d29CeF4AA62F56ad12d15F6E445C54d) |
+| Ubiquito (UBI) | [`0xe37517f4EbE94AeF1Ad021F9cDCaFfD4d96F601b`](https://sepolia.etherscan.io/address/0xe37517f4EbE94AeF1Ad021F9cDCaFfD4d96F601b) |
+| ChessFactory | [`0xD3570F455B0581493e6F7861dbf15Fb2A0d02EF5`](https://sepolia.etherscan.io/address/0xD3570F455B0581493e6F7861dbf15Fb2A0d02EF5) |
+| Latest game (at deploy) | [`0x1857716a0be358CCFc2C8ddC3cAEf991972156c8`](https://sepolia.etherscan.io/address/0x1857716a0be358CCFc2C8ddC3cAEf991972156c8) |
 
 Network ID: `11155111`
 

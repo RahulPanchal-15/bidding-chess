@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Web3 from 'web3';
+import { BrowserProvider, Contract } from 'ethers';
 import MetaMaskOnboarding from '@metamask/onboarding';
 import Ubiquito from '../contracts/Ubiquito.json';
 import { isSupportedPlayNetwork, SEPOLIA, UBI_TOKEN } from '../web3/networks';
@@ -15,14 +15,14 @@ export function useWallet() {
   const [switchingNetwork, setSwitchingNetwork] = useState(false);
   const [watchingToken, setWatchingToken] = useState(false);
 
-  const web3Ref = useRef(null);
+  const providerRef = useRef(null);
   const ubiRef = useRef(null);
   const networkIdRef = useRef(null);
 
-  const getWeb3 = useCallback(() => web3Ref.current, []);
+  const getProvider = useCallback(() => providerRef.current, []);
 
   const applyDisconnected = useCallback(() => {
-    web3Ref.current = null;
+    providerRef.current = null;
     ubiRef.current = null;
     networkIdRef.current = null;
     setAccount(null);
@@ -47,11 +47,11 @@ export function useWallet() {
         return;
       }
 
-      const web3 = new Web3(window.ethereum);
-      web3.eth.handleRevert = true;
-      web3Ref.current = web3;
+      const provider = new BrowserProvider(window.ethereum);
+      providerRef.current = provider;
 
-      const networkId = await web3.eth.net.getId();
+      const network = await provider.getNetwork();
+      const networkId = Number(network.chainId);
       networkIdRef.current = networkId;
       setAccount(accounts[0]);
 
@@ -63,14 +63,15 @@ export function useWallet() {
         return;
       }
 
-      const ubi = new web3.eth.Contract(
+      const ubi = new Contract(
+        Ubiquito.networks[networkId].address,
         Ubiquito.abi,
-        Ubiquito.networks[networkId].address
+        provider
       );
       ubiRef.current = ubi;
 
-      const balance = await ubi.methods.balanceOf(accounts[0]).call();
-      setUbiBalance(balance);
+      const balance = await ubi.balanceOf(accounts[0]);
+      setUbiBalance(balance.toString());
       setConnected(true);
       setRightNetwork(true);
     },
@@ -256,7 +257,7 @@ export function useWallet() {
     switchToSepolia,
     watchUbiToken,
     installMetamask,
-    getWeb3,
+    getProvider,
     getUbi: () => ubiRef.current,
     getNetworkId: () => networkIdRef.current,
     setUbiBalance,

@@ -1,11 +1,11 @@
-import Web3 from 'web3';
+import { formatEther } from 'ethers';
 
 export const assetUrl = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
 
 export const formatEth = (wei) => {
   if (wei === undefined || wei === null || wei === '') return '0';
   try {
-    return Web3.utils.fromWei(String(wei), 'ether');
+    return formatEther(String(wei));
   } catch {
     return '0';
   }

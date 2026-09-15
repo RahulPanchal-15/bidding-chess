@@ -7,7 +7,7 @@
     "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.2.0",
+    "@openzeppelin/contracts": "^4.9.6",
     "dotenv": "^16.6.1"
   },
   "devDependencies": {
